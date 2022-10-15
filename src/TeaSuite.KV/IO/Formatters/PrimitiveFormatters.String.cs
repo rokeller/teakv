@@ -30,7 +30,7 @@ partial class PrimitiveFormatters
         /// </summary>
         public StringFormatter() { }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask<string> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
@@ -50,7 +50,7 @@ partial class PrimitiveFormatters
             }
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
@@ -69,7 +69,7 @@ partial class PrimitiveFormatters
             return default;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask WriteAsync(string value, Stream destination, CancellationToken cancellationToken)
         {
             int byteLength = encoding.GetByteCount(value);

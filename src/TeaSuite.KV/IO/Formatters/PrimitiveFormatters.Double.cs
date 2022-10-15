@@ -13,7 +13,7 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct DoubleFormatter : IFormatter<double>
     {
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask<double> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(double)];
@@ -22,7 +22,7 @@ partial class PrimitiveFormatters
             return new(BitConverter.ToDouble(buffer));
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             if (source.CanSeek)
@@ -38,7 +38,7 @@ partial class PrimitiveFormatters
             return default;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask WriteAsync(double value, Stream destination, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(double)];

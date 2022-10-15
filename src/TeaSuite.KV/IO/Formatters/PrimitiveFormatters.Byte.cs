@@ -11,7 +11,7 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct ByteFormatter : IFormatter<byte>
     {
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask<byte> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
             int result = source.ReadByte();
@@ -23,7 +23,7 @@ partial class PrimitiveFormatters
             return new((byte)result);
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             int result = source.ReadByte();
@@ -35,7 +35,7 @@ partial class PrimitiveFormatters
             return default;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask WriteAsync(byte value, Stream destination, CancellationToken cancellationToken)
         {
             destination.WriteByte(value);

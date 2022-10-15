@@ -13,7 +13,7 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct Int16Formatter : IFormatter<short>
     {
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask<short> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(short)];
@@ -22,7 +22,7 @@ partial class PrimitiveFormatters
             return new(BitConverter.ToInt16(buffer));
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             if (source.CanSeek)
@@ -38,7 +38,7 @@ partial class PrimitiveFormatters
             return default;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask WriteAsync(short value, Stream destination, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(short)];

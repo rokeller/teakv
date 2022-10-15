@@ -13,7 +13,7 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct Int32Formatter : IFormatter<int>
     {
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask<int> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
@@ -22,7 +22,7 @@ partial class PrimitiveFormatters
             return new(BitConverter.ToInt32(buffer));
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             if (source.CanSeek)
@@ -38,7 +38,7 @@ partial class PrimitiveFormatters
             return default;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask WriteAsync(int value, Stream destination, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];

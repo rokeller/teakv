@@ -18,7 +18,7 @@ partial class PrimitiveFormatters
         /// </summary>
         private const int GuidSize = 16;
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask<Guid> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[GuidSize];
@@ -27,7 +27,7 @@ partial class PrimitiveFormatters
             return new(new Guid(buffer));
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             if (source.CanSeek)
@@ -43,7 +43,7 @@ partial class PrimitiveFormatters
             return default;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask WriteAsync(Guid value, Stream destination, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[GuidSize];

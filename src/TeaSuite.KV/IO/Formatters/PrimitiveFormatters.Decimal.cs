@@ -13,7 +13,7 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct DecimalFormatter : IFormatter<decimal>
     {
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask<decimal> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[4 * sizeof(int)];
@@ -28,7 +28,7 @@ partial class PrimitiveFormatters
             return new(new Decimal(bits));
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             if (source.CanSeek)
@@ -44,7 +44,7 @@ partial class PrimitiveFormatters
             return default;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask WriteAsync(decimal value, Stream destination, CancellationToken cancellationToken)
         {
             int[] bits = Decimal.GetBits(value);

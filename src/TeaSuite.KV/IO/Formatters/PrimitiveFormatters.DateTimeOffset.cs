@@ -13,7 +13,7 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct DateTimeOffsetFormatter : IFormatter<DateTimeOffset>
     {
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask<DateTimeOffset> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[2 * sizeof(long)];
@@ -25,7 +25,7 @@ partial class PrimitiveFormatters
             return new(new DateTimeOffset(ticks, new TimeSpan(offsetTicks)));
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             if (source.CanSeek)
@@ -41,7 +41,7 @@ partial class PrimitiveFormatters
             return default;
         }
 
-        /// <inheritdoc/>>
+        /// <inheritdoc/>
         public ValueTask WriteAsync(DateTimeOffset value, Stream destination, CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[2 * sizeof(long)];
