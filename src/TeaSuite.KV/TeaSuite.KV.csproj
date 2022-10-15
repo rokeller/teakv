@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>TeaSuite.KV</RootNamespace>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Linq.Async" Version="6.0.*"/>
+    <PackageReference Include="System.Collections.Immutable" Version="6.0.*"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.*"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.*"/>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.*"/>
+    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.*"/>
+  </ItemGroup>
+</Project>
