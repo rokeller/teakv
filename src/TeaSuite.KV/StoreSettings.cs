@@ -1,3 +1,4 @@
+using System;
 using TeaSuite.KV.Policies;
 
 namespace TeaSuite.KV;
@@ -30,4 +31,12 @@ public class StoreSettings
     /// Defaults to the default <see cref="DefaultMergePolicy"/>.
     /// </remarks>
     public virtual IMergePolicy MergePolicy { get; set; } = new DefaultMergePolicy();
+
+    /// <summary>
+    /// Gets the minimum interval between persisting the in-memory store to segments.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to 10 seconds.
+    /// </remarks>
+    public virtual TimeSpan MinimumPersistInterval { get; set; } = TimeSpan.FromSeconds(10);
 }
