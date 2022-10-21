@@ -4,10 +4,10 @@ namespace TeaSuite.KV;
 /// Defines the contract for a Key/Value store.
 /// </summary>
 /// <typeparam name="TKey">
-/// The type of the keys used for entries in the key value store.
+/// The type of the keys used for entries in the Key/Value store.
 /// </typeparam>
 /// <typeparam name="TValue">
-/// The type of the values used for entries in the key value store.
+/// The type of the values used for entries in the Key/Value store.
 /// </typeparam>
 public interface IKeyValueStore<TKey, TValue>
 {
