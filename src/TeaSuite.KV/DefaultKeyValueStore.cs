@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TeaSuite.KV.Data;
 using TeaSuite.KV.IO;
+using TeaSuite.KV.Policies;
 
 namespace TeaSuite.KV;
 
@@ -137,6 +138,17 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
 
         // Suppress finalization.
         GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Starts a merge operation, provided the current <see cref="IMergePolicy"/> allows it.
+    /// </summary>
+    public void Merge()
+    {
+        if (settings.MergePolicy.ShouldMerge(Segments.Count))
+        {
+            StartMerge();
+        }
     }
 
     /// <summary>

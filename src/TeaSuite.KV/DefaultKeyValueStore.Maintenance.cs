@@ -32,7 +32,14 @@ partial class DefaultKeyValueStore<TKey, TValue>
         {
             if (maintenanceQueue.TryDequeue(out Func<Task> maintenanceTaskFunc))
             {
-                await maintenanceTaskFunc();
+                try
+                {
+                    await maintenanceTaskFunc();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Unexpected exception in maintenance task.");
+                }
             }
             else
             {

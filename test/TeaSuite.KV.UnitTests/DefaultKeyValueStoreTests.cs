@@ -196,7 +196,7 @@ public sealed class DefaultKeyValueStoreTests
     }
 
     [Theory, AutoData]
-    public void PersistAddsNewSegmentToSegmentsAndStartsMerge(
+    public async Task PersistAddsNewSegmentToSegmentsAndStartsMerge(
         int key1,
         int expectedValue1,
         int key2,
@@ -273,12 +273,75 @@ public sealed class DefaultKeyValueStoreTests
         oldStoreValuesRead.Release();
 
         segmentMadeReadOnly.Wait();
-        Thread.Sleep(TimeSpan.FromMilliseconds(10));
+        await Task.Delay(TimeSpan.FromMilliseconds(10));
         // The next value would be read from the newly added read-only segment.
         Assert.True(store.TryGet(-1, out int actualValueFromSegment));
         Assert.Equal(-1, actualValueFromSegment);
 
         mockMemStore.Verify(s => s.GetOrderedEnumerator(), Times.Once);
         mockMergePolicy.Verify(p => p.ShouldMerge(It.IsAny<long>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task MergeWorks()
+    {
+        // Segment 1: entries for keys 0-4; keys 1 and 3 are deleted; all others have value 1;
+        Segment<int, int> seg1 = StoreUtils.CreateSegment(1, Enumerable.Range(0, 5)
+            .Select(i => i % 2 == 0 ? new StoreEntry<int, int>(i, 1) : StoreEntry<int, int>.Delete(i))
+            .ToArray());
+        // Segment 2: entries for keys 0,3,6,9; all have value 2.
+        Segment<int, int> seg2 = StoreUtils.CreateSegment(2, Enumerable.Range(0, 4)
+            .Select(i => new StoreEntry<int, int>(i * 3, 2)).ToArray());
+
+        Segment<int, int> newSegment = default;
+        Mock<IEntryFormatter<int, int>>? mockFormatter = default;
+        WriterContext writerContext = default;
+        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager(seg1, seg2);
+        mockSegmentManager.Setup(m => m.CreateNewSegment(3))
+            .Returns((long segmentId) =>
+            {
+                mockFormatter = new Mock<IEntryFormatter<int, int>>(MockBehavior.Loose);
+                writerContext = StoreUtils.CreateSegmentWriter(MockBehavior.Loose);
+                newSegment = StoreUtils.CreateSegment(segmentId, writerContext.Writer.Object, mockFormatter.Object);
+
+                return newSegment;
+            });
+        mockSegmentManager.Setup(m => m.DeleteSegmentAsync(It.IsIn<long>(1, 2), default)).Returns(new ValueTask());
+
+        SemaphoreSlim newSegmentMadeReadOnly = new SemaphoreSlim(0, 1);
+        mockSegmentManager.Setup(m => m.MakeReadOnly(It.Is<Segment<int, int>>(
+                seg => seg.Id == newSegment.Id && seg.Driver == seg.Driver)))
+            .Returns(() =>
+            {
+                newSegmentMadeReadOnly.Release();
+                return newSegment;
+            });
+
+        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+            NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            mockMemFactory.Object,
+            mockSegmentManager.Object,
+            mockOptions.Object,
+            mockClock.Object);
+
+        store.Merge();
+
+        newSegmentMadeReadOnly.Wait();
+        await Task.Delay(TimeSpan.FromMilliseconds(1));
+        Assert.NotNull(mockFormatter);
+        Assert.NotNull(writerContext.IndexStream);
+        Assert.NotNull(writerContext.DataStream);
+        // The merged sequence should be (key,value): (0,2),(2,1),(3,2),(4,1),(6,2),(9,2) -- 6 entries total.
+        mockFormatter.Verify(f => f.WriteKeyAsync(0, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(2, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(3, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(4, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(6, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(9, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteValueAsync(1, writerContext.DataStream, default), Times.Exactly(2));
+        mockFormatter.Verify(f => f.WriteValueAsync(2, writerContext.DataStream, default), Times.Exactly(4));
+        // The index will only have the first and last entries' keys: 0 and 9.
+        mockFormatter.Verify(f => f.WriteKeyAsync(0, writerContext.IndexStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(9, writerContext.IndexStream, default), Times.Once);
     }
 }
