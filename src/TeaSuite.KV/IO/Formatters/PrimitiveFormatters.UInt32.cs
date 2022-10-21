@@ -13,6 +13,8 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct UInt32Formatter : IFormatter<uint>
     {
+        public UInt32Formatter() { }
+
         /// <inheritdoc/>
         public ValueTask<uint> ReadAsync(Stream source, CancellationToken cancellationToken)
         {

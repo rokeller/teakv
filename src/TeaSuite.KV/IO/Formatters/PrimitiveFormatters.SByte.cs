@@ -11,6 +11,8 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct SByteFormatter : IFormatter<sbyte>
     {
+        public SByteFormatter() { }
+
         /// <inheritdoc/>
         public ValueTask<sbyte> ReadAsync(Stream source, CancellationToken cancellationToken)
         {

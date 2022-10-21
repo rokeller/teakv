@@ -13,6 +13,8 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct UInt64Formatter : IFormatter<ulong>
     {
+        public UInt64Formatter() { }
+
         /// <inheritdoc/>
         public ValueTask<ulong> ReadAsync(Stream source, CancellationToken cancellationToken)
         {

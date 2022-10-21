@@ -13,6 +13,8 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct GuidFormatter : IFormatter<Guid>
     {
+        public GuidFormatter() { }
+
         /// <summary>
         /// The size of a Guid value in bytes.
         /// </summary>

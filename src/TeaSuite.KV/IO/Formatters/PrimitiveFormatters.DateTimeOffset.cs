@@ -13,6 +13,8 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct DateTimeOffsetFormatter : IFormatter<DateTimeOffset>
     {
+        public DateTimeOffsetFormatter() { }
+
         /// <inheritdoc/>
         public ValueTask<DateTimeOffset> ReadAsync(Stream source, CancellationToken cancellationToken)
         {

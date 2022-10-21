@@ -11,6 +11,8 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct BooleanFormatter : IFormatter<bool>
     {
+        public BooleanFormatter() { }
+
         /// <inheritdoc/>
         public ValueTask<bool> ReadAsync(Stream source, CancellationToken cancellationToken)
         {

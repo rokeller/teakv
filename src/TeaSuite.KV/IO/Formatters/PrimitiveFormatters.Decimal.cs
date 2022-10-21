@@ -13,6 +13,8 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct DecimalFormatter : IFormatter<decimal>
     {
+        public DecimalFormatter() { }
+
         /// <inheritdoc/>
         public ValueTask<decimal> ReadAsync(Stream source, CancellationToken cancellationToken)
         {

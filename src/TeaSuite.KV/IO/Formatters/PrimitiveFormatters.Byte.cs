@@ -11,6 +11,8 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct ByteFormatter : IFormatter<byte>
     {
+        public ByteFormatter() { }
+
         /// <inheritdoc/>
         public ValueTask<byte> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
