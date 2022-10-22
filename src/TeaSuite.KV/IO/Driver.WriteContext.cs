@@ -37,8 +37,8 @@ partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
-            await Stream.FlushAsync();
-            await Stream.DisposeAsync();
+            await Stream.FlushAsync().ConfigureAwaitLib();
+            await Stream.DisposeAsync().ConfigureAwaitLib();
         }
     }
 }

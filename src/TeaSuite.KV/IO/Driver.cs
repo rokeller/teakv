@@ -470,7 +470,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         long? readWindow = nextEntry?.Position - startEntry.Position;
 
         await using ReadContext context = new ReadContext(
-            await reader.OpenDataForReadAsync(startEntry.Position, readWindow, cancellationToken));
+            await reader.OpenDataForReadAsync(startEntry.Position, readWindow, cancellationToken).ConfigureAwaitLib());
 
         StoreEntry<TKey, TValue>? entry = await SeekEntryAsync(context, key, cancellationToken).ConfigureAwaitLib();
 

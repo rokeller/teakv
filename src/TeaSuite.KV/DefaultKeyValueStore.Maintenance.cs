@@ -34,7 +34,7 @@ partial class DefaultKeyValueStore<TKey, TValue>
             {
                 try
                 {
-                    await maintenanceTaskFunc();
+                    await maintenanceTaskFunc().ConfigureAwaitLib();
                 }
                 catch (Exception ex)
                 {
@@ -43,7 +43,7 @@ partial class DefaultKeyValueStore<TKey, TValue>
             }
             else
             {
-                await Task.Delay(maxWait);
+                await Task.Delay(maxWait).ConfigureAwaitLib();
             }
         }
     }
@@ -143,7 +143,7 @@ partial class DefaultKeyValueStore<TKey, TValue>
         using FilteringEnumerator<StoreEntry<TKey, TValue>> filtered =
             new FilteringEnumerator<StoreEntry<TKey, TValue>>(merging, IsNotDeleted);
 
-        long numEntries = await driver.WriteEntriesAsync(filtered, settings, default);
+        long numEntries = await driver.WriteEntriesAsync(filtered, settings, default).ConfigureAwaitLib();
         watch.Stop();
         // TODO: Consider what to do when the resulting segment is empty because all entries were deleted and filtered.
 
