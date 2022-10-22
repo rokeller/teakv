@@ -10,7 +10,8 @@ namespace TeaSuite.KV;
 /// <typeparam name="TValue">
 /// The type of the value used by the entry.
 /// </typeparam>
-public readonly struct StoreEntry<TKey, TValue> : IComparable<StoreEntry<TKey, TValue>> where TKey : IComparable<TKey>
+public readonly partial struct StoreEntry<TKey, TValue> : IComparable<StoreEntry<TKey, TValue>>
+    where TKey : IComparable<TKey>
 {
     /// <summary>
     /// Initializes a new non-deleted instance of StoreEntry.
