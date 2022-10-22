@@ -26,4 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TeaSuite.KV\TeaSuite.KV.csproj"/>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="TestData/**/*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
