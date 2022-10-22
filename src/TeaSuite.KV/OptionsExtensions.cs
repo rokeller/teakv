@@ -7,7 +7,7 @@ namespace TeaSuite.KV;
 /// <summary>
 /// Extensions for options as used in the context of a Key/Value store.
 /// </summary>
-public static class OptionsExtensionils
+public static class OptionsExtensions
 {
     /// <summary>
     /// Configures options for a Key/Value store.
