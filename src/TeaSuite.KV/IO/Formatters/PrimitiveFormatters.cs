@@ -37,7 +37,7 @@ public static partial class PrimitiveFormatters
         services.TryAddTransient(typeof(IFormatter<Guid>), typeof(GuidFormatter));
 
         services.TryAddTransient(typeof(IFormatter<DateTime>), typeof(DateTimeFormatter));
-        services.TryAddTransient(typeof(IFormatter<DateTimeOffset>), typeof(DateTimeOffset));
+        services.TryAddTransient(typeof(IFormatter<DateTimeOffset>), typeof(DateTimeOffsetFormatter));
 
         services.TryAddTransient(typeof(IFormatter<string>), typeof(StringFormatter));
 
