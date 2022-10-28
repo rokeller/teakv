@@ -58,7 +58,7 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
         ILogger<FileSegmentManager<TKey, TValue>> logger,
         ILoggerFactory loggerFactory,
         IEntryFormatter<TKey, TValue> entryFormatter,
-        IOptionsSnapshot<FileSegmentsOptions> fileSegmentsOptions)
+        IOptionsMonitor<FileSegmentsOptions> fileSegmentsOptions)
     {
         this.logger = logger;
         this.loggerFactory = loggerFactory;

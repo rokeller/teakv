@@ -19,15 +19,15 @@ public sealed class DefaultKeyValueStoreTests
     private readonly Mock<IMemoryKeyValueStore<int, int>> mockMemStore =
         new Mock<IMemoryKeyValueStore<int, int>>(MockBehavior.Strict);
     private readonly StoreOptions<int, int> options = new StoreOptions<int, int>();
-    private readonly Mock<IOptionsSnapshot<StoreOptions<int, int>>> mockOptions =
-        new Mock<IOptionsSnapshot<StoreOptions<int, int>>>(MockBehavior.Strict);
+    private readonly Mock<IOptionsMonitor<StoreOptions<int, int>>> mockOptions =
+        new Mock<IOptionsMonitor<StoreOptions<int, int>>>(MockBehavior.Strict);
     private readonly Mock<ISystemClock> mockClock = new Mock<ISystemClock>(MockBehavior.Strict);
     private readonly DateTimeOffset utcNow = new DateTimeOffset(2022, 10, 21, 13, 30, 13, 0, TimeSpan.Zero);
 
     public DefaultKeyValueStoreTests()
     {
         mockMemFactory.Setup(f => f.Create()).Returns(mockMemStore.Object);
-        mockOptions.SetupGet(o => o.Value).Returns(options);
+        mockOptions.SetupGet(o => o.CurrentValue).Returns(options);
         mockClock.SetupGet(c => c.UtcNow).Returns(utcNow);
     }
 

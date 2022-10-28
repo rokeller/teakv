@@ -11,21 +11,21 @@ public sealed class FileSegmentManagerTests
     private readonly Fixture fixture = new Fixture();
     private readonly Mock<IEntryFormatter<int, int>> mockFormatter =
         new Mock<IEntryFormatter<int, int>>(MockBehavior.Loose);
-    private readonly FileSegmentsOptions options = new FileSegmentsOptions();
-    private readonly Mock<IOptionsSnapshot<FileSegmentsOptions>> mockOptions =
-        new Mock<IOptionsSnapshot<FileSegmentsOptions>>(MockBehavior.Strict);
+    private readonly FileSegmentsOptions fileSegmentsOptions = new FileSegmentsOptions();
+    private readonly Mock<IOptionsMonitor<FileSegmentsOptions>> mockFileSegmentsOptions =
+        new Mock<IOptionsMonitor<FileSegmentsOptions>>(MockBehavior.Strict);
     private readonly FileSegmentManager<int, int> manager;
 
     public FileSegmentManagerTests()
     {
-        mockOptions.Setup(o => o.Get("KVStore<Int32,Int32>")).Returns(options);
-        options.SegmentsDirectoryPath = Path.Combine(Path.GetTempPath(), "teakv", fixture.Create<string>());
+        mockFileSegmentsOptions.Setup(o => o.Get("KVStore<Int32,Int32>")).Returns(fileSegmentsOptions);
+        fileSegmentsOptions.SegmentsDirectoryPath = Path.Combine(Path.GetTempPath(), "teakv", fixture.Create<string>());
 
         manager = new FileSegmentManager<int, int>(
             NullLogger<FileSegmentManager<int, int>>.Instance,
             NullLoggerFactory.Instance,
             mockFormatter.Object,
-            mockOptions.Object);
+            mockFileSegmentsOptions.Object);
     }
 
     [Theory, AutoData]
@@ -154,8 +154,8 @@ public sealed class FileSegmentManagerTests
 
     private (string indexFile, string dataFile) GetFileNames(long segmentId)
     {
-        string indexFile = Path.Combine(options.SegmentsDirectoryPath, $"segment_{segmentId:d12}.index");
-        string dataFile = Path.Combine(options.SegmentsDirectoryPath, $"segment_{segmentId:d12}.data");
+        string indexFile = Path.Combine(fileSegmentsOptions.SegmentsDirectoryPath, $"segment_{segmentId:d12}.index");
+        string dataFile = Path.Combine(fileSegmentsOptions.SegmentsDirectoryPath, $"segment_{segmentId:d12}.data");
 
         return (indexFile, dataFile);
     }

@@ -25,7 +25,7 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     private readonly ILogger<DefaultKeyValueStore<TKey, TValue>> logger;
     private readonly IMemoryKeyValueStoreFactory<TKey, TValue> memoryStoreFactory;
     private readonly ISegmentManager<TKey, TValue> segmentManager;
-    private readonly IOptionsSnapshot<StoreOptions<TKey, TValue>> options;
+    private readonly IOptionsMonitor<StoreOptions<TKey, TValue>> options;
     private readonly StoreSettings settings;
     private readonly ISystemClock systemClock;
     private readonly Task pendingMaintenance;
@@ -46,7 +46,7 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
         ILogger<DefaultKeyValueStore<TKey, TValue>> logger,
         IMemoryKeyValueStoreFactory<TKey, TValue> memoryStoreFactory,
         ISegmentManager<TKey, TValue> segmentManager,
-        IOptionsSnapshot<StoreOptions<TKey, TValue>> options,
+        IOptionsMonitor<StoreOptions<TKey, TValue>> options,
         ISystemClock systemClock)
         : base(logger, segmentManager)
     {
@@ -54,7 +54,7 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
         this.memoryStoreFactory = memoryStoreFactory;
         this.segmentManager = segmentManager;
         this.options = options;
-        this.settings = options.Value.Settings;
+        this.settings = options.CurrentValue.Settings;
         this.systemClock = systemClock;
 
         // Start the maintenance worker.

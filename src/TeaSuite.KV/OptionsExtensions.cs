@@ -45,7 +45,7 @@ public static class OptionsExtensions
     /// <paramref name="options"/>.
     /// </summary>
     /// <param name="options">
-    /// The <see cref="IOptionsSnapshot{TOptions}"/> from which to get the options.
+    /// The <see cref="IOptionsMonitor{TOptions}"/> from which to get the options.
     /// </param>
     /// <typeparam name="TOptions">
     /// The type of the options to get.
@@ -59,7 +59,7 @@ public static class OptionsExtensions
     /// <returns>
     /// A <typeparamref name="TOptions"/> instance.
     /// </returns>
-    public static TOptions GetForStore<TOptions, TKey, TValue>(this IOptionsSnapshot<TOptions> options)
+    public static TOptions GetForStore<TOptions, TKey, TValue>(this IOptionsMonitor<TOptions> options)
         where TOptions : class
     {
         return options.Get(GetOptionsName<TKey, TValue>());
