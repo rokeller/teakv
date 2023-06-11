@@ -27,12 +27,12 @@ jobs:
 
       - name: Restore dependencies
         run: |
-          dotnet restore TeaSuite.KV.sln;
+          dotnet restore TeaSuite.KV.sln
           dotnet restore Examples.sln
 
       - name: Build
         run: |
-          dotnet build TeaSuite.KV.sln --no-restore;
+          dotnet build TeaSuite.KV.sln --no-restore
           dotnet build Examples.sln --no-restore
 
       - name: Test
