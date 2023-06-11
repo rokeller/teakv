@@ -1,0 +1,60 @@
+name: PR
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: |
+          dotnet restore TeaSuite.KV.sln
+          dotnet restore Examples.sln
+
+      - name: Build
+        run: |
+          dotnet build TeaSuite.KV.sln --no-restore
+          dotnet build Examples.sln --no-restore
+
+      - name: Test
+        run: |
+          dotnet test TeaSuite.KV.sln --no-build   \
+            --collect:'XPlat Code Coverage'        \
+            --results-directory 'TestResults/Temp'
+
+      - name: Install report generator
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Generate report
+        run: |
+          reportgenerator -reports:"TestResults/Temp/*/coverage.cobertura.xml" \
+            -targetdir:coverage '-reporttypes:Html_Dark;MarkdownSummaryGithub'
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: coverage/SummaryGithub.md
+
+      - name: Write to Job Summary
+        run: cat coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
