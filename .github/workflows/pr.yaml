@@ -49,3 +49,12 @@ jobs:
         run: |
           reportgenerator -reports:"TestResults/Temp/*/coverage.cobertura.xml" \
             -targetdir:coverage -reporttypes:Html_Dark
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: coverage/SummaryGithub.md
+
+      - name: Write to Job Summary
+        run: cat coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
