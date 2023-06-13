@@ -30,7 +30,7 @@ partial class DefaultKeyValueStore<TKey, TValue>
         TimeSpan maxWait = TimeSpan.FromSeconds(1);
         while (!storeOpen.IsCancellationRequested || maintenanceQueue.Count > 0)
         {
-            if (maintenanceQueue.TryDequeue(out Func<Task> maintenanceTaskFunc))
+            if (maintenanceQueue.TryDequeue(out Func<Task>? maintenanceTaskFunc))
             {
                 try
                 {

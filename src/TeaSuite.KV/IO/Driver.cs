@@ -284,7 +284,11 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
 
         if (Index.HasValue)
         {
+#if NETSTANDARD
             ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array);
+#else
+            ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array!);
+#endif
         }
 
         if (disposeReader.HasValue)
@@ -318,7 +322,11 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
 
                 if (Index.HasValue)
                 {
+#if NETSTANDARD
                     ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array);
+#else
+                    ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array!);
+#endif
                 }
             }
 
