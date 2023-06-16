@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+env:
+  DOTNET_VERSIONS: |
+    6.0.x
+    7.0.x
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: "0"
+
+      - uses: paulhatch/semantic-version@v5.0.3
+        id: version
+        with:
+          tag_prefix: "v"
+          major_pattern: "(MAJOR)"
+          major_regexp_flags: ""
+          minor_pattern: "(MINOR)"
+          minor_regexp_flags: ""
+          version_format: "${major}.${minor}.${patch}"
+          bump_each_commit: true
+          search_commit_body: false
+          user_format_type: "csv"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: $DOTNET_VERSIONS
+
+      - name: Create NuGet Package
+        run: |
+          dotnet pack TeaSuite.KV.sln --configuration Release /p:Version=${VERSION}
+          mkdir packages/ || true
+          cp $(find ./ -name *.nupkg -print) packages/
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Publish NuGet Package
+        run: |
+          dotnet nuget push packages/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
