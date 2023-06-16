@@ -12,20 +12,25 @@ public sealed class FileSegmentManagerTests
     private readonly Mock<IEntryFormatter<int, int>> mockFormatter =
         new Mock<IEntryFormatter<int, int>>(MockBehavior.Loose);
     private readonly FileSegmentsOptions fileSegmentsOptions = new FileSegmentsOptions();
+    private readonly DynamicPathOptions dynamicPathOptions = new DynamicPathOptions();
     private readonly Mock<IOptionsMonitor<FileSegmentsOptions>> mockFileSegmentsOptions =
         new Mock<IOptionsMonitor<FileSegmentsOptions>>(MockBehavior.Strict);
+    private readonly Mock<IOptionsMonitor<DynamicPathOptions>> mockDynamicPathOptions =
+        new Mock<IOptionsMonitor<DynamicPathOptions>>(MockBehavior.Strict);
     private readonly FileSegmentManager<int, int> manager;
 
     public FileSegmentManagerTests()
     {
         mockFileSegmentsOptions.Setup(o => o.Get("KVStore<Int32,Int32>")).Returns(fileSegmentsOptions);
+        mockDynamicPathOptions.Setup(o => o.Get("KVStore<Int32,Int32>")).Returns(dynamicPathOptions);
         fileSegmentsOptions.SegmentsDirectoryPath = Path.Combine(Path.GetTempPath(), "teakv", fixture.Create<string>());
 
         manager = new FileSegmentManager<int, int>(
             NullLogger<FileSegmentManager<int, int>>.Instance,
             NullLoggerFactory.Instance,
             mockFormatter.Object,
-            mockFileSegmentsOptions.Object);
+            mockFileSegmentsOptions.Object,
+            mockDynamicPathOptions.Object);
     }
 
     [Theory, AutoData]

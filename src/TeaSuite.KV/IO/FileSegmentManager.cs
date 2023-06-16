@@ -58,14 +58,23 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
         ILogger<FileSegmentManager<TKey, TValue>> logger,
         ILoggerFactory loggerFactory,
         IEntryFormatter<TKey, TValue> entryFormatter,
-        IOptionsMonitor<FileSegmentsOptions> fileSegmentsOptions)
+        IOptionsMonitor<FileSegmentsOptions> fileSegmentsOptions,
+        IOptionsMonitor<DynamicPathOptions> dynamicPathOptions)
     {
         this.logger = logger;
         this.loggerFactory = loggerFactory;
         this.entryFormatter = entryFormatter;
 
-        FileSegmentsOptions options = fileSegmentsOptions.GetForStore<FileSegmentsOptions, TKey, TValue>();
-        segmentsDir = Directory.CreateDirectory(options.SegmentsDirectoryPath);
+        FileSegmentsOptions fileSegments = fileSegmentsOptions.GetForStore<FileSegmentsOptions, TKey, TValue>();
+        DynamicPathOptions dynamicPath = dynamicPathOptions.GetForStore<DynamicPathOptions, TKey, TValue>();
+        List<string> pathParts = new List<string>(dynamicPath.PathSegments.Count + 1)
+        {
+            fileSegments.SegmentsDirectoryPath,
+        };
+        pathParts.AddRange(dynamicPath.PathSegments);
+
+        string basePath = Path.Combine(pathParts.ToArray());
+        segmentsDir = Directory.CreateDirectory(basePath);
     }
 
     protected ILogger Logger => logger;

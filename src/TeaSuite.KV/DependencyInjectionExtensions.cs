@@ -60,6 +60,34 @@ public static class DependencyInjectionExtensions
         );
     }
 
+    public static StoreBuilder<TKey, TValue> AddReadOnlyKeyValueStores<TKey, TValue, TSelectorKey>(
+        this IServiceCollection services,
+        string dynamicPathFormat)
+        where TKey : IComparable<TKey>
+    {
+        return new StoreBuilder<TKey, TValue>(services
+            .AddSingleton<IStoreSelector<TKey, TValue, TSelectorKey>, DefaultKeyValueStoreSelector<TKey, TValue, TSelectorKey>>()
+            .AddTransient<IReadOnlyKeyValueStore<TKey, TValue>, ReadOnlyKeyValueStore<TKey, TValue>>()
+            .ConfigureForStore<StoreSelectorOptions, TKey, TValue>(options => options.DynamicPathFormat = dynamicPathFormat)
+            .AddDefaultFormatters()
+            .AddSystemClock()
+        );
+    }
+
+    public static StoreBuilder<TKey, TValue> AddKeyValueStores<TKey, TValue, TSelectorKey>(
+        this IServiceCollection services,
+        string dynamicPathFormat)
+        where TKey : IComparable<TKey>
+    {
+        return new StoreBuilder<TKey, TValue>(services
+            .AddSingleton<IStoreSelector<TKey, TValue, TSelectorKey>, DefaultKeyValueStoreSelector<TKey, TValue, TSelectorKey>>()
+            .AddTransient<IKeyValueStore<TKey, TValue>, DefaultKeyValueStore<TKey, TValue>>()
+            .ConfigureForStore<StoreSelectorOptions, TKey, TValue>(options => options.DynamicPathFormat = dynamicPathFormat)
+            .AddDefaultFormatters()
+            .AddSystemClock()
+        );
+    }
+
     /// <summary>
     /// Adds default formatters for <see cref="IEntryFormatter{TKey, TValue}"/> and <see cref="IFormatter{T}"/> for
     /// primitive types.
