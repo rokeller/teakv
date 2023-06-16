@@ -1,0 +1,103 @@
+name: PreRelease
+
+on:
+  push:
+    branches: ["release/**"]
+
+env:
+  DOTNET_VERSIONS: |
+    6.0.x
+    7.0.x
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: "0"
+
+      # Docs: https://github.com/marketplace/actions/git-semantic-version
+      - uses: paulhatch/semantic-version@v5.0.3
+        id: version
+        with:
+          tag_prefix: "v"
+          major_pattern: "(MAJOR)"
+          major_regexp_flags: ""
+          minor_pattern: "(MINOR)"
+          minor_regexp_flags: ""
+          version_format: "${major}.${minor}.${patch}-rc${increment}"
+          bump_each_commit: true
+          search_commit_body: false
+          user_format_type: "csv"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: $DOTNET_VERSIONS
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: |
+          dotnet restore TeaSuite.KV.sln
+          dotnet restore Examples.sln
+
+      - name: Build
+        run: |
+          dotnet build TeaSuite.KV.sln --no-restore --configuration Release
+          dotnet build Examples.sln --no-restore --configuration Release
+
+      - name: Test
+        run: |
+          dotnet test TeaSuite.KV.sln --no-build --configuration Release  \
+            --collect:'XPlat Code Coverage'                               \
+            --results-directory 'TestResults/Temp'
+
+      - name: Install report generator
+        if: ${{ always() }}
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Generate report
+        if: ${{ always() }}
+        run: |
+          reportgenerator -reports:"TestResults/Temp/*/coverage.cobertura.xml" \
+            -targetdir:coverage '-reporttypes:Html_Dark;MarkdownSummaryGithub'
+
+      - name: Write to Job Summary
+        if: ${{ always() }}
+        run: cat coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+
+  publish:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: $DOTNET_VERSIONS
+
+      - name: Create NuGet Package
+        run: |
+          dotnet pack TeaSuite.KV.sln --configuration Release /p:Version=${VERSION}
+          mkdir packages/ || true
+          cp $(find ./ -name *.nupkg -print) packages/
+        env:
+          VERSION: ${{ needs.build-test.outputs.version }}
+
+      - name: Publish NuGet Package
+        run: |
+          dotnet nuget push packages/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}

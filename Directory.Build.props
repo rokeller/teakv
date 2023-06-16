@@ -29,10 +29,9 @@
         <Features>strict</Features>
         <RepositoryUrl>https://github.com/$(GITHUB_REPOSITORY)</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <RepositoryBranch>$(GITHUB_REF)</RepositoryBranch>
+        <RepositoryBranch>$(GITHUB_REF_NAME)</RepositoryBranch>
+        <RepositoryCommit>$(GITHUB_SHA)</RepositoryCommit>
         <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
-        <IncludeSource>true</IncludeSource>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup Label="NuSpec">
