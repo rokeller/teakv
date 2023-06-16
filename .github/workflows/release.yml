@@ -14,34 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: "0"
-
-      - uses: paulhatch/semantic-version@v5.0.3
-        id: version
-        with:
-          tag_prefix: "v"
-          major_pattern: "(MAJOR)"
-          major_regexp_flags: ""
-          minor_pattern: "(MINOR)"
-          minor_regexp_flags: ""
-          version_format: "${major}.${minor}.${patch}"
-          bump_each_commit: true
-          search_commit_body: false
-          user_format_type: "csv"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: $DOTNET_VERSIONS
+          dotnet-version: ${{ env.DOTNET_VERSIONS }}
 
       - name: Create NuGet Package
         run: |
-          dotnet pack TeaSuite.KV.sln --configuration Release /p:Version=${VERSION}
+          dotnet pack TeaSuite.KV.sln --configuration Release
           mkdir packages/ || true
           cp $(find ./ -name *.nupkg -print) packages/
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
 
       - name: Publish NuGet Package
         run: |
