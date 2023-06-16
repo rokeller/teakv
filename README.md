@@ -1,6 +1,6 @@
-# TeaSuite Key/Value Store
+# TeaSuite Key-Value Store
 
-A simple in-process Key/Value store for .Net. Writes and deletes are first made in-memory (so they are very fast). The
+A simple in-process Key-Value store for .Net. Writes and deletes are first made in-memory (so they are very fast). The
 data stored in-memory can periodically be flushed to segments on disk. Segments are stored in sorted order of the keys.
 Once a segment has been written, it will never change, but it can get deleted _after_ having been merged with other
 segments into a new segment. Each segment consist of a data file and an index file.
@@ -11,10 +11,10 @@ segments can be merged (aka compacted) so that reads in segments can be made fas
 
 ## Usage Examples
 
-### `int`/`string` Key/Value Store on local disk
+### `int`/`string` Key-Value Store on local disk
 
-The Key/Value store can easily be configured through dependency injection. For instance, the following example registers
-a Key/Value store for integer/string key/value pairs:
+The Key-Value store can easily be configured through dependency injection. For instance, the following example registers
+a Key-Value store for integer/string key-value pairs:
 
 ```csharp
 services
@@ -122,7 +122,7 @@ readonly struct PersonFormatter : IFormatter<Person>
 }
 ```
 
-Now you register the Key/Value store for `Guid` keys and `Person` values as follows to persist values in the `people`
+Now you register the Key-Value store for `Guid` keys and `Person` values as follows to persist values in the `people`
 directory:
 
 ```csharp
