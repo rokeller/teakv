@@ -1,4 +1,5 @@
 using System;
+
 namespace TeaSuite.KV;
 
 /// <summary>
@@ -10,7 +11,8 @@ namespace TeaSuite.KV;
 /// <typeparam name="TValue">
 /// The type of the value used by the entry.
 /// </typeparam>
-public readonly partial struct StoreEntry<TKey, TValue> : IComparable<StoreEntry<TKey, TValue>>
+public readonly partial struct StoreEntry<TKey, TValue> :
+    IComparable<StoreEntry<TKey, TValue>>
     where TKey : IComparable<TKey>
 {
     /// <summary>
@@ -49,10 +51,28 @@ public readonly partial struct StoreEntry<TKey, TValue> : IComparable<StoreEntry
     /// The key for which to create a deleted entry.
     /// </param>
     /// <returns>
-    /// A <see cref="StoreEntry{TKey, TValue}"/> which marks the given <paramref name="key"/> as deleted.
+    /// A <see cref="StoreEntry{TKey, TValue}"/> which marks the given <paramref name="key"/>
+    /// as deleted.
     /// </returns>
     public static StoreEntry<TKey, TValue> Delete(TKey key)
     {
+        return new StoreEntry<TKey, TValue>(key);
+    }
+
+    /// <summary>
+    /// Creates a sentinel entry for the given <paramref name="key"/>.
+    /// </summary>
+    /// <param name="key">
+    /// The key for which to create a sentinel entry.
+    /// </param>
+    /// <returns>
+    /// A <see cref="StoreEntry{TKey, TValue}"/> which serves as sentinel for the
+    /// given <paramref name="key"/>.
+    /// </returns>
+    public static StoreEntry<TKey, TValue> Sentinel(TKey key)
+    {
+        // Currently, entry comparison is done purely on keys, which is why an
+        // entry that's marked as deleted is a good-enough sentinel.
         return new StoreEntry<TKey, TValue>(key);
     }
 
@@ -76,4 +96,19 @@ public readonly partial struct StoreEntry<TKey, TValue> : IComparable<StoreEntry
     /// Gets a flag which indicates whether the entry is deleted.
     /// </summary>
     public bool IsDeleted { get; }
+
+    /// <summary>
+    /// A predicate that checks if the given <paramref name="entry"/> is marked
+    /// as deleted.
+    /// </summary>
+    /// <param name="entry">
+    /// The <see cref="StoreEntry{TKey, TValue}"/> to check.
+    /// </param>
+    /// <returns>
+    /// True if the <paramref name="entry"/> is deleted, or false otherwise.
+    /// </returns>
+    public static bool IsNotDeleted(StoreEntry<TKey, TValue> entry)
+    {
+        return !entry.IsDeleted;
+    }
 }
