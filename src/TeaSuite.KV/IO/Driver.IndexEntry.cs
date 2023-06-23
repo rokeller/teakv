@@ -5,7 +5,7 @@ partial class Driver<TKey, TValue>
     /// <summary>
     /// Defines an entry in a segment's index.
     /// </summary>
-    internal readonly struct IndexEntry
+    internal readonly record struct IndexEntry
     {
         /// <summary>
         /// Gets the (0-based) position of the entry in the index.

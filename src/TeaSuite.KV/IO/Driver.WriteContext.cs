@@ -9,7 +9,7 @@ partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     /// <summary>
     /// Defines the context for writing to a segment's data or index file.
     /// </summary>
-    private readonly struct WriteContext : IDisposable, IAsyncDisposable
+    private readonly record struct WriteContext : IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Initializes a new instance of <see cref="WriteContext"/>.

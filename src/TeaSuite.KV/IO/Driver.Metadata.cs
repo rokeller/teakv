@@ -7,7 +7,7 @@ partial class Driver<TKey, TValue>
     /// <summary>
     /// Defines metadata for a segment.
     /// </summary>
-    internal readonly struct SegmentMetadata
+    internal readonly record struct SegmentMetadata
     {
         /// <summary>
         /// The current version supported when writing segments.

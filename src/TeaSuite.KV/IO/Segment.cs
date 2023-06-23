@@ -11,7 +11,7 @@ namespace TeaSuite.KV.IO;
 /// <typeparam name="TValue">
 /// The type of the value used for entries in the segment.
 /// </typeparam>
-public readonly struct Segment<TKey, TValue> : IComparable<Segment<TKey, TValue>> where TKey : IComparable<TKey>
+public readonly record struct Segment<TKey, TValue> : IComparable<Segment<TKey, TValue>> where TKey : IComparable<TKey>
 {
     /// <summary>
     /// Gets a <see cref="long"/> value that uniquely identifies the segment.
