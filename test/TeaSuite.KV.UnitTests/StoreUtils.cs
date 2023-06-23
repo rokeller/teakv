@@ -62,8 +62,14 @@ internal static class StoreUtils
 
     public static ReaderContext CreateSegmentReader(int firstKey, int lastKey, params EntryFlags[] entryFlags)
     {
+        return CreateSegmentReader(firstKey, lastKey, 2, entryFlags);
+    }
+
+    public static ReaderContext CreateSegmentReader(int firstKey, int lastKey, int indexEntryCount, params EntryFlags[] entryFlags)
+    {
         Mock<ISegmentReader> reader = new Mock<ISegmentReader>(MockBehavior.Strict);
-        Stream indexStream = StreamUtils.CreateIndexStream(false, Driver<int, int>.SegmentMetadata.CurrentVersion, 0, 0);
+        Stream indexStream = StreamUtils.CreateIndexStream(false, Driver<int, int>.SegmentMetadata.CurrentVersion,
+            Enumerable.Range(0, indexEntryCount).Select((index) => (long)(index * sizeof(EntryFlags))).ToArray());
         Stream dataStream = StreamUtils.CreateDataStream(entryFlags);
 
         reader.Setup(r => r.OpenIndexForReadAsync(default)).ReturnsAsync(indexStream);
