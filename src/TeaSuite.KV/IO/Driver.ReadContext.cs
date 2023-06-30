@@ -9,7 +9,7 @@ partial class Driver<TKey, TValue>
     /// <summary>
     /// Defines the context for reading from a segment's data or index file.
     /// </summary>
-    private readonly struct ReadContext : IDisposable, IAsyncDisposable
+    private readonly record struct ReadContext : IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Initializes a new instance of <see cref="ReadContext"/>.

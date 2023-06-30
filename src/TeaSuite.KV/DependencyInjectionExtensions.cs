@@ -6,7 +6,7 @@ using TeaSuite.KV.IO.Formatters;
 namespace TeaSuite.KV;
 
 /// <summary>
-/// Provides extension emthods for dependency injection.
+/// Provides extension methods for dependency injection.
 /// </summary>
 public static class DependencyInjectionExtensions
 {
@@ -29,7 +29,7 @@ public static class DependencyInjectionExtensions
         where TKey : IComparable<TKey>
     {
         return new StoreBuilder<TKey, TValue>(services
-            .AddSingleton<IKeyValueStore<TKey, TValue>, ReadOnlyKeyValueStore<TKey, TValue>>()
+            .AddSingleton<IReadOnlyKeyValueStore<TKey, TValue>, ReadOnlyKeyValueStore<TKey, TValue>>()
             .AddDefaultFormatters()
             .AddSystemClock()
         );

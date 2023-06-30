@@ -48,9 +48,7 @@ public sealed class DefaultMemoryKeyValueStore<TKey, TValue> : IMemoryKeyValueSt
     /// <inheritdoc/>
     public bool TryGet(TKey key, out StoreEntry<TKey, TValue> entry)
     {
-        // The Find method of the tree only uses the StoreEntry.KeyComparer, which only compares keys. Therefore,
-        // it doesn't matter what entry we pass, as long as the keys match.
-        return tree.TryFind(StoreEntry<TKey, TValue>.Delete(key), out entry);
+        return tree.TryFind(StoreEntry<TKey, TValue>.Sentinel(key), out entry);
     }
 
     /// <inheritdoc/>

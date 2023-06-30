@@ -164,25 +164,6 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Gets an <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/> values representing all the
-    /// entries from the segment the driver is for.
-    /// </summary>
-    /// <returns>
-    /// An instance of <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/> that can be used to
-    /// enumerate all the segment's entries.
-    /// </returns>
-    public IEnumerator<StoreEntry<TKey, TValue>> GetEntryEnumerator()
-    {
-        if (reader == null)
-        {
-            throw new InvalidOperationException("Cannot read in a non-readable segment.");
-        }
-        ThrowIfDisposed();
-
-        return new EntryEnumerator(this, default);
-    }
-
-    /// <summary>
     /// Asynchronously writes the <paramref name="entries"/> using the specified <paramref name="settings"/>.
     /// </summary>
     /// <param name="entries">
@@ -474,7 +455,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         // The nextEntry should point at the next entry from the index provided such an entry exists, or null if we
         // start the search at the last entry of the segment - in that case, we want to read to the segment's data
         // file's end anyway.
-        IndexEntry? nextEntry = startEntry.Id < Index.Value.Count - 1 ? Index.Value[startEntry.Id + 1] : null;
+        IndexEntry? nextEntry = GetNextIndexEntry(startEntry);
         long? readWindow = nextEntry?.Position - startEntry.Position;
 
         await using ReadContext context = new ReadContext(
@@ -483,6 +464,28 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         StoreEntry<TKey, TValue>? entry = await SeekEntryAsync(context, key, cancellationToken).ConfigureAwaitLib();
 
         return entry;
+    }
+
+    /// <summary>
+    /// Gets the <see cref="IndexEntry"/> that follows the given <paramref name="entry"/>
+    /// if available.
+    /// </summary>
+    /// <param name="entry">
+    /// The <see cref="IndexEntry"/> for which to get the next entry in the index.
+    /// </param>
+    /// <returns>
+    /// The next <see cref="IndexEntry"/> or <c>null</c> if there is no next index
+    /// entry.
+    /// </returns>
+    private IndexEntry? GetNextIndexEntry(IndexEntry entry)
+    {
+        Debug.Assert(reader != null, "The reader must not be null.");
+        Debug.Assert(Index.HasValue, "The index must not be null.");
+
+        IndexEntry? nextEntry = entry.Id < Index.Value.Count - 1 ?
+            Index.Value[entry.Id + 1] : null;
+
+        return nextEntry;
     }
 
     /// <summary>

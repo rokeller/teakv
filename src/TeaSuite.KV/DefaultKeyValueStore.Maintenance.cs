@@ -128,11 +128,6 @@ partial class DefaultKeyValueStore<TKey, TValue>
             .Select(s => s.Driver.GetEntryEnumerator())
             .ToList();
 
-        static bool IsNotDeleted(StoreEntry<TKey, TValue> entry)
-        {
-            return !entry.IsDeleted;
-        }
-
         long newSegmentId = GetNextSegmentId();
         Logger.LogInformation("Merging {numSegments} into new segment {segmentId}.", enumerators.Count, newSegmentId);
         Segment<TKey, TValue> segment = SegmentManager.CreateNewSegment(newSegmentId);
@@ -141,7 +136,7 @@ partial class DefaultKeyValueStore<TKey, TValue>
             new MergingEnumerator<StoreEntry<TKey, TValue>>(enumerators.ToArray());
         // Since we merge all currently known segments, we can skip those entries that are deleted and compress a bit.
         using FilteringEnumerator<StoreEntry<TKey, TValue>> filtered =
-            new FilteringEnumerator<StoreEntry<TKey, TValue>>(merging, IsNotDeleted);
+            new FilteringEnumerator<StoreEntry<TKey, TValue>>(merging, StoreEntry<TKey, TValue>.IsNotDeleted);
 
         long numEntries = await driver.WriteEntriesAsync(filtered, settings, default).ConfigureAwaitLib();
         watch.Stop();
