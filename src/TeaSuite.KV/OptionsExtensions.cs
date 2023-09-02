@@ -79,6 +79,14 @@ public static class OptionsExtensions
     /// </returns>
     public static string GetOptionsName<TKey, TValue>()
     {
-        return $"KVStore<{typeof(TKey).Name},{typeof(TValue).Name}>";
+        Type keyType = typeof(TKey);
+        Type valueType = typeof(TValue);
+
+        // The names of generic types get shortened for the `.Name` property, so
+        // for instance `Tuple<int, int>` and `Tuple<string, string>` get the
+        // same name "Tuple`2" though they are different types. Thus, we include
+        // the type handle value in the names here too, to guarantee uniqueness.
+        return $"KVStore<{keyType.Name}[{keyType.TypeHandle.Value:x}]," +
+                       $"{valueType.Name}[{valueType.TypeHandle.Value:x}]>";
     }
 }

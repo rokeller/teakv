@@ -10,6 +10,11 @@ internal static class StoreUtils
     public delegate void TryGetCallback<TKey, TValue>(TKey key, out StoreEntry<TKey, TValue> entry)
         where TKey : IComparable<TKey>;
 
+    public static string GetOptionsName<TKey, TValue>()
+    {
+        return OptionsExtensions.GetOptionsName<TKey, TValue>();
+    }
+
     public static Mock<ISegmentManager<int, int>> CreateSegmentManager(params Segment<int, int>[] segments)
     {
         Mock<ISegmentManager<int, int>> mockSegmentManager = new Mock<ISegmentManager<int, int>>(MockBehavior.Strict);
