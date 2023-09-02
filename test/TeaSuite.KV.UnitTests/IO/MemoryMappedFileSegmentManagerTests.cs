@@ -19,7 +19,8 @@ public sealed class MemoryMappedFileSegmentManagerTests
 
     public MemoryMappedFileSegmentManagerTests()
     {
-        mockFileSegmentsOptions.Setup(o => o.Get("KVStore<Int32,Int32>")).Returns(fileSegmentsOptions);
+        string optionsName = StoreUtils.GetOptionsName<int, int>();
+        mockFileSegmentsOptions.Setup(o => o.Get(optionsName)).Returns(fileSegmentsOptions);
         fileSegmentsOptions.SegmentsDirectoryPath = Path.Combine(Path.GetTempPath(), "teakv", fixture.Create<string>());
 
         manager = new MemoryMappedFileSegmentManager<int, int>(
