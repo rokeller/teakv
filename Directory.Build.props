@@ -4,7 +4,7 @@
         <Nullable>enable</Nullable>
         <LibraryTargetFrameworks>netstandard2.1;net6.0;net7.0</LibraryTargetFrameworks>
         <TestTargetFrameworks>net6.0;net7.0</TestTargetFrameworks>
-        <VersionPrefix>0.2.0</VersionPrefix>
+        <VersionPrefix>0.2.1</VersionPrefix>
     </PropertyGroup>
 
     <PropertyGroup>
