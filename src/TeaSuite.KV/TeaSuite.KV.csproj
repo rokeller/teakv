@@ -8,8 +8,8 @@
 
   <PropertyGroup>
     <Title>TeaSuite Key-Value Store</Title>
-    <PackageDescription>TeaSuite In-Memory / In-Process Key-Value Store</PackageDescription>
-    <PackageTags>keyvalue;key-value;store;database;in-memory;in-process</PackageTags>
+    <PackageDescription>TeaSuite Embedded / In-Process Key-Value Store</PackageDescription>
+    <PackageTags>keyvalue;key-value;store;database;embedded;in-process</PackageTags>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'netstandard2.1'">
