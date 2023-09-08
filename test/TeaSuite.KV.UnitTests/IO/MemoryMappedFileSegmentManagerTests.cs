@@ -157,6 +157,36 @@ public sealed class MemoryMappedFileSegmentManagerTests
         Assert.Equal(entryValue, entry.Value.Value);
     }
 
+    [Theory, AutoData]
+    public async Task CreateNewSegmentFailsWhenSegmentExists(long segmentId)
+    {
+        static async Task TryWriteAsync(Driver<int, int> driver)
+        {
+            await driver.WriteEntriesAsync(
+                Enumerable.Empty<StoreEntry<int, int>>().GetEnumerator(),
+                new StoreSettings(),
+                default);
+        }
+
+        Segment<int, int> seg = manager.CreateNewSegment(segmentId);
+        await TryWriteAsync(seg.Driver);
+
+        seg = manager.CreateNewSegment(segmentId);
+        IOException ex = await Assert.ThrowsAsync<IOException>(
+            () => TryWriteAsync(seg.Driver));
+
+        if (Environment.OSVersion.Platform == PlatformID.Unix)
+        {
+            // EEXIST 17 File exists
+            Assert.Equal(17, ex.HResult);
+        }
+        else
+        {
+            // NOTE: Error/HResult checks for other platforms used for testing must be added here.
+            Assert.Fail("Please add proper error check for this platform.");
+        }
+    }
+
     private (string indexFile, string dataFile) GetFileNames(long segmentId)
     {
         string indexFile = Path.Combine(fileSegmentsOptions.SegmentsDirectoryPath,
