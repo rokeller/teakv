@@ -23,13 +23,15 @@ partial class FileSegmentManager<TKey, TValue>
         /// <inheritdoc/>
         public ValueTask<Stream> OpenIndexForWriteAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<Stream>(File.Open(indexFilePath, FileMode.Create, FileAccess.Write, FileShare.None));
+            return new ValueTask<Stream>(
+                File.Open(indexFilePath, FileMode.CreateNew, FileAccess.Write, FileShare.None));
         }
 
         /// <inheritdoc/>
         public ValueTask<Stream> OpenDataForWriteAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<Stream>(File.Open(dataFilePath, FileMode.Create, FileAccess.Write, FileShare.None));
+            return new ValueTask<Stream>(
+                File.Open(dataFilePath, FileMode.CreateNew, FileAccess.Write, FileShare.None));
         }
 
         /// <inheritdoc/>
