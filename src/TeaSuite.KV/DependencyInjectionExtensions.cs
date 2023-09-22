@@ -74,7 +74,7 @@ public static class DependencyInjectionExtensions
     {
         services.TryAddTransient(typeof(IEntryFormatter<,>), typeof(DefaultEntryFormatter<,>));
 
-        return services.AddPrimitiveFormatters();
+        return services.AddPrimitiveFormatters().AddKeyTupleFormatters();
     }
 
     /// <summary>

@@ -43,4 +43,22 @@ public static partial class PrimitiveFormatters
 
         return services;
     }
+
+    public static IServiceCollection AddKeyTupleFormatters(this IServiceCollection services)
+    {
+        services.TryAddTransient(typeof(IKeyTupleFormatter<,>), typeof(KeyTupleFormatter<,>));
+
+        return services;
+    }
+
+    public static IServiceCollection AddKeyTupleFormatter<TMajor, TMinor>(this IServiceCollection services)
+        where TMajor : IComparable<TMajor>
+        where TMinor : IComparable<TMinor>
+    {
+        services.AddKeyTupleFormatters();
+        services.TryAddTransient<IFormatter<KeyTuple<TMajor, TMinor>>>(
+            services => services.GetRequiredService<IKeyTupleFormatter<TMajor, TMinor>>());
+
+        return services;
+    }
 }
