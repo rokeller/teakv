@@ -12,19 +12,10 @@
     <PackageTags>keyvalue;key-value;store;database;embedded;in-process</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'netstandard2.1'">
-    <PackageReference Include="System.Linq.Async" Version="6.0.*"/>
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.*"/>
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="System.Collections.Immutable" Version="7.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.*"/>
-    <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.*"/>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SystemDependencyVersionWildcard)"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SystemDependencyVersionWildcard)"/>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SystemDependencyVersionWildcard)"/>
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(SystemDependencyVersionWildcard)"/>
   </ItemGroup>
 </Project>
