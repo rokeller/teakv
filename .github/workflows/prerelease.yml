@@ -1,8 +1,8 @@
 name: PreRelease
 
 on:
-  push:
-    branches: ["release/**"]
+  release:
+    types: [prereleased]
 
 env:
   DOTNET_VERSIONS: |
@@ -46,18 +46,18 @@ jobs:
             --results-directory 'TestResults/Temp'
 
       - name: Install report generator
-        if: ${{ always() }}
+        if: ${{ !cancelled() }}
         run: |
           dotnet tool install --global dotnet-reportgenerator-globaltool
 
       - name: Generate report
-        if: ${{ always() }}
+        if: ${{ !cancelled() }}
         run: |
           reportgenerator -reports:"TestResults/Temp/*/coverage.cobertura.xml" \
             -targetdir:coverage '-reporttypes:Html_Dark;MarkdownSummaryGithub'
 
       - name: Write to Job Summary
-        if: ${{ always() }}
+        if: ${{ !cancelled() }}
         run: cat coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
 
   publish:
@@ -71,12 +71,16 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSIONS }}
 
+      - name: Get version
+        # Extract the version from the pre-release tag.
+        run: |
+          TAG_NAME=$GITHUB_REF_NAME
+          VERSION=$(echo $TAG_NAME | sed -r 's/^v?([0-9.]+-.+)$/\1/')
+          echo "Version=$VERSION" >> $GITHUB_ENV
+
       - name: Create NuGet Package
         run: |
-          SHORT_HASH=$(git rev-parse --short HEAD)
-          dotnet pack TeaSuite.KV.sln --configuration Release -p:VersionSuffix=rc-$SHORT_HASH
-          mkdir packages/ || true
-          cp $(find ./ -name *.nupkg -print) packages/
+          dotnet pack TeaSuite.KV.sln --configuration Release --output packages/
 
       - name: Publish NuGet Package
         run: |

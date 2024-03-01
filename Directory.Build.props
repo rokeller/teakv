@@ -4,7 +4,6 @@
         <Nullable>enable</Nullable>
         <LibraryTargetFrameworks>net6.0;net7.0;net8.0</LibraryTargetFrameworks>
         <TestTargetFrameworks>net6.0;net7.0;net8.0</TestTargetFrameworks>
-        <VersionPrefix>0.2.2</VersionPrefix>
     </PropertyGroup>
 
     <PropertyGroup Label="SystemDependencyVersions">
