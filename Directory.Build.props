@@ -2,7 +2,7 @@
 <Project>
     <PropertyGroup>
         <Nullable>enable</Nullable>
-        <LibraryTargetFrameworks>net6.0;net7.0;net8.0</LibraryTargetFrameworks>
+        <LibraryTargetFrameworks>net6.0;net7.0;net8.0;netstandard2.1</LibraryTargetFrameworks>
         <TestTargetFrameworks>net6.0;net7.0;net8.0</TestTargetFrameworks>
     </PropertyGroup>
 
@@ -10,7 +10,7 @@
         <!-- Use 6.0.x assemblies as the minimum for dependencies -->
         <SystemDependencyVersionWildcard>6.0.*</SystemDependencyVersionWildcard>
         <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net7.0'">7.0.*</SystemDependencyVersionWildcard>
-        <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net8.0'">8.0.*</SystemDependencyVersionWildcard>
+        <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'netstandard2.1'">8.0.*</SystemDependencyVersionWildcard>
     </PropertyGroup>
 
     <PropertyGroup>
