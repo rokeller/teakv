@@ -4,6 +4,7 @@
     <RootNamespace>TeaSuite.KV</RootNamespace>
     <LangVersion>10.0</LangVersion>
     <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>

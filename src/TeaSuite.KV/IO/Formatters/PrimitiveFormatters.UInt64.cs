@@ -13,6 +13,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct UInt64Formatter : IFormatter<ulong>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="UInt64Formatter"/>.
+        /// </summary>
         public UInt64Formatter() { }
 
         /// <inheritdoc/>

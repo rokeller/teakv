@@ -29,6 +29,7 @@ public sealed partial class MemoryMappedFileSegmentManager<TKey, TValue> :
     FileSegmentManager<TKey, TValue>
     where TKey : IComparable<TKey>
 {
+    /// <inheritdoc/>
     public MemoryMappedFileSegmentManager(
         ILogger<MemoryMappedFileSegmentManager<TKey, TValue>> logger,
         ILoggerFactory loggerFactory,

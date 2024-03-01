@@ -11,6 +11,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct SByteFormatter : IFormatter<sbyte>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="SByteFormatter"/>.
+        /// </summary>
         public SByteFormatter() { }
 
         /// <inheritdoc/>

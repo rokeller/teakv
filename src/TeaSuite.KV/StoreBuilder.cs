@@ -16,6 +16,13 @@ namespace TeaSuite.KV;
 /// </typeparam>
 public class StoreBuilder<TKey, TValue> where TKey : IComparable<TKey>
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="StoreBuilder{TKey, TValue}"/>.
+    /// </summary>
+    /// <param name="services">
+    /// The <see cref="IServiceCollection"/> on which new services are to be
+    /// registered.
+    /// </param>
     public StoreBuilder(IServiceCollection services)
     {
         Services = services
@@ -25,6 +32,9 @@ public class StoreBuilder<TKey, TValue> where TKey : IComparable<TKey>
             ;
     }
 
+    /// <summary>
+    /// The <see cref="IServiceCollection"/> this builder is for.
+    /// </summary>
     public virtual IServiceCollection Services { get; }
 
     /// <summary>

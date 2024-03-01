@@ -13,6 +13,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct GuidFormatter : IFormatter<Guid>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="GuidFormatter"/>.
+        /// </summary>
         public GuidFormatter() { }
 
         /// <summary>

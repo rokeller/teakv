@@ -19,7 +19,7 @@ public interface IFormatter<T>
     /// The <see cref="Stream"/> from which to read the value.
     /// </param>
     /// <param name="cancellationToken">
-    /// A <see cref="CancellationToken"> value that tracks if the operation should be cancelled.
+    /// A <see cref="CancellationToken"/> value that tracks if the operation should be cancelled.
     /// </param>
     /// <returns>
     /// A <see cref="ValueTask{TResult}"/> of <typeparamref name="T"/> that tracks availabiliby of the read value.
@@ -33,10 +33,10 @@ public interface IFormatter<T>
     /// The <see cref="Stream"/> in which to skip the value.
     /// </param>
     /// <param name="cancellationToken">
-    /// A <see cref="CancellationToken"> value that tracks if the operation should be cancelled.
+    /// A <see cref="CancellationToken"/> value that tracks if the operation should be cancelled.
     /// </param>
     /// <returns>
-    /// A <see cref="ValueTask"> that tracks completion of the operation.
+    /// A <see cref="ValueTask"/> that tracks completion of the operation.
     /// </returns>
     ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken);
 
@@ -47,13 +47,13 @@ public interface IFormatter<T>
     /// The value of <typeparamref name="T"/> to write to the stream.
     /// </param>
     /// <param name="destination">
-    /// The <see cref="Stream"> to which to write the value.
+    /// The <see cref="Stream"/> to which to write the value.
     /// </param>
     /// <param name="cancellationToken">
-    /// A <see cref="CancellationToken"> value that tracks if the operation should be cancelled.
+    /// A <see cref="CancellationToken"/> value that tracks if the operation should be cancelled.
     /// </param>
     /// <returns>
-    /// A <see cref="ValueTask"> that tracks completion of the operation.
+    /// A <see cref="ValueTask"/> that tracks completion of the operation.
     /// </returns>
     ValueTask WriteAsync(T value, Stream destination, CancellationToken cancellationToken);
 }

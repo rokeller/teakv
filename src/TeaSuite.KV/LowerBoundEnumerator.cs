@@ -16,7 +16,7 @@ internal readonly struct LowerBoundEnumerator<T> :
     private readonly T lowerBound;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="LowerBoundEnumerator{T}".
+    /// Initializes a new instance of <see cref="LowerBoundEnumerator{T}"/>.
     /// </summary>
     /// <param name="inner">
     /// The inner <see cref="IEnumerator{T}"/>, which is assumed to be sorted.

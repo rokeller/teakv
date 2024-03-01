@@ -290,7 +290,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     /// Disposes this instance.
     /// </summary>
     /// <param name="disposing">
-    /// A flag that indicates whether the method is called from <see cref="Dispose"/>.
+    /// A flag that indicates whether the method is called from <see cref="Dispose()"/>.
     /// </param>
     private void Dispose(bool disposing)
     {
@@ -501,8 +501,9 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     /// A <see cref="CancellationToken"/> value that can be used to cancel the operation.
     /// </param>
     /// <returns>
-    /// A <see cref="ValueTask{TResult}"/> of <see cref="StoreEntry{TKey, TValue}"/> that results in the entry if it is
-    /// found, or <c>null</c> if the segment does not have an entry for the given <paramref name="key"/>.
+    /// A <see cref="ValueTask{TResult}"/> of <see cref="StoreEntry{TKey, TValue}"/>
+    /// that results in the entry if it is found, or <c>null</c> if the segment
+    /// does not have an entry for the given <paramref name="keyToMatch"/>.
     /// </returns>
     private async ValueTask<StoreEntry<TKey, TValue>?> SeekEntryAsync(
         ReadContext context,

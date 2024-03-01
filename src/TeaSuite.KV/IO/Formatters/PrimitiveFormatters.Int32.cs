@@ -13,6 +13,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct Int32Formatter : IFormatter<int>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="Int32Formatter"/>.
+        /// </summary>
         public Int32Formatter() { }
 
         /// <inheritdoc/>

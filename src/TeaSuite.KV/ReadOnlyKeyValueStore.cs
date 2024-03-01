@@ -23,6 +23,7 @@ public class ReadOnlyKeyValueStore<TKey, TValue> :
     IReadOnlyKeyValueStore<TKey, TValue>
     where TKey : IComparable<TKey>
 {
+    /// <inheritdoc/>
     public ReadOnlyKeyValueStore(
         ILogger<ReadOnlyKeyValueStore<TKey, TValue>> logger,
         ISegmentManager<TKey, TValue> segmentManager)

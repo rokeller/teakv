@@ -42,6 +42,27 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     /// </summary>
     private DateTimeOffset lastPersistQueued;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DefaultKeyValueStore{TKey, TValue}"/>.
+    /// </summary>
+    /// <param name="logger">
+    /// The <see cref="ILogger{TCategoryName}"/> to use.
+    /// </param>
+    /// <param name="memoryStoreFactory">
+    /// The <see cref="IMemoryKeyValueStoreFactory{TKey, TValue}"/> to use to
+    /// create new instances of <see cref="IMemoryKeyValueStore{TKey, TValue}"/>.
+    /// </param>
+    /// <param name="segmentManager">
+    /// The <see cref="ISegmentManager{TKey, TValue}"/> to use to manage persisted
+    /// segments of the store.
+    /// </param>
+    /// <param name="options">
+    /// An <see cref="IOptionsMonitor{TOptions}"/> of <see cref="StoreOptions{TKey, TValue}"/>
+    /// holding settings for the store.
+    /// </param>
+    /// <param name="systemClock">
+    /// The <see cref="ISystemClock"/> instance to use.
+    /// </param>
     public DefaultKeyValueStore(
         ILogger<DefaultKeyValueStore<TKey, TValue>> logger,
         IMemoryKeyValueStoreFactory<TKey, TValue> memoryStoreFactory,
@@ -155,7 +176,7 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     /// Disposes this instance.
     /// </summary>
     /// <param name="disposing">
-    /// A flag which indicates whether the call originated from the <see cref="Dispose"/> method.
+    /// A flag which indicates whether the call originated from the <see cref="Dispose()"/> method.
     /// </param>
     protected virtual void Dispose(bool disposing)
     {
