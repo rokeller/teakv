@@ -19,8 +19,9 @@ internal readonly struct FilteringEnumerator<T> : IEnumerator<T>
     /// The <see cref="IEnumerator{T}"/> to use as the source for items to enumerate.
     /// </param>
     /// <param name="predicate">
-    /// A <see cref="Func{T, bool}"/> which is used to decide which items to keep. This <paramref name="predicate"/>
-    /// must return <c>true</c> for items that should be kept and <c>false</c> for all other items.
+    /// A <see cref="Func{T, TResult}"/> which is used to decide which items to
+    /// keep. This <paramref name="predicate"/> must return <c>true</c> for items
+    /// that should be kept and <c>false</c> for all other items.
     /// </param>
     public FilteringEnumerator(IEnumerator<T> inner, Func<T, bool> predicate)
     {

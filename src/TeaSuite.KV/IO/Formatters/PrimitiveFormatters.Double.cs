@@ -13,6 +13,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct DoubleFormatter : IFormatter<double>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="DoubleFormatter"/>.
+        /// </summary>
         public DoubleFormatter() { }
 
         /// <inheritdoc/>

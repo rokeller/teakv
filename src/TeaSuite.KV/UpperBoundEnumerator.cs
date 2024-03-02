@@ -16,7 +16,7 @@ internal readonly struct UpperBoundEnumerator<T> :
     private readonly T upperBound;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="UpperBoundEnumerator{T}".
+    /// Initializes a new instance of <see cref="UpperBoundEnumerator{T}"/>.
     /// </summary>
     /// <param name="inner">
     /// The inner <see cref="IEnumerator{T}"/>, which is assumed to be sorted.

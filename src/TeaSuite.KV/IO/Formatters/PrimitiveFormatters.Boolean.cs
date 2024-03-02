@@ -11,6 +11,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct BooleanFormatter : IFormatter<bool>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="BooleanFormatter"/>.
+        /// </summary>
         public BooleanFormatter() { }
 
         /// <inheritdoc/>

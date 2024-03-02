@@ -11,6 +11,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct ByteFormatter : IFormatter<byte>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="ByteFormatter"/>.
+        /// </summary>
         public ByteFormatter() { }
 
         /// <inheritdoc/>

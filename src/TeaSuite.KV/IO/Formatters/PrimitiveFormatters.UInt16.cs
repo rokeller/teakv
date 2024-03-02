@@ -13,6 +13,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct UInt16Formatter : IFormatter<ushort>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="UInt16Formatter"/>.
+        /// </summary>
         public UInt16Formatter() { }
 
         /// <inheritdoc/>

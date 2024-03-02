@@ -54,6 +54,22 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
 
     #endregion
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="FileSegmentManager{TKey, TValue}"/>.
+    /// </summary>
+    /// <param name="logger">
+    /// The <see cref="ILogger{TCategoryName}"/> to use.
+    /// </param>
+    /// <param name="loggerFactory">
+    /// The <see cref="ILoggerFactory"/> to use.
+    /// </param>
+    /// <param name="entryFormatter">
+    /// The <see cref="IEntryFormatter{TKey, TValue}"/> to use.
+    /// </param>
+    /// <param name="fileSegmentsOptions">
+    /// An <see cref="IOptionsMonitor{TOptions}"/> of <see cref="FileSegmentsOptions"/>
+    /// holding settings for the file segments.
+    /// </param>
     public FileSegmentManager(
         ILogger<FileSegmentManager<TKey, TValue>> logger,
         ILoggerFactory loggerFactory,
@@ -68,7 +84,15 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
         segmentsDir = Directory.CreateDirectory(options.SegmentsDirectoryPath);
     }
 
+    /// <summary>
+    /// The <see cref="ILogger"/>> to use for logging.
+    /// </summary>
     protected ILogger Logger => logger;
+
+    /// <summary>
+    /// The <see cref="DirectoryInfo"/> holding information about the directory
+    /// in which the segments are stored.
+    /// </summary>
     protected DirectoryInfo SegmentsDir => segmentsDir;
 
     /// <inheritdoc/>

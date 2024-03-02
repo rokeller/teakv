@@ -163,12 +163,12 @@ public static class FileSegmentManagerStoreBuilderExtensions
     }
 
     /// <summary>
-    /// Adds memory-mapped file storage configured through the given <paramref name="newOptions"/>.
+    /// Adds memory-mapped file storage configured through the given <paramref name="newSettings"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="StoreBuilder{TKey, TValue}"/> to add file storage to.
     /// </param>
-    /// <param name="newOptions">
+    /// <param name="newSettings">
     /// The <see cref="FileSegmentsOptions"/> to use to configure the settings for file segments.
     /// </param>
     /// <typeparam name="TKey">

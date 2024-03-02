@@ -29,7 +29,7 @@ public interface ISegmentReader : IDisposable, IAsyncDisposable
     /// data file.
     /// </param>
     /// <param name="readWindow">
-    /// A <see cref="long?"/> value that indicates how long the read window in the data stream is supposed to be. If
+    /// A <see cref="long"/> value that indicates how long the read window in the data stream is supposed to be. If
     /// <c>null</c> is provided, the read window should be extended to the end of the file.
     /// </param>
     /// <param name="cancellationToken">

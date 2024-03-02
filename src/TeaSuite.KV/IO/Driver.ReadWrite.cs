@@ -72,7 +72,7 @@ partial class Driver<TKey, TValue>
     /// A <see cref="CancellationToken"/> value that can be used to cancel the operation.
     /// </param>
     /// <returns>
-    /// A <see cref="ValueTask{TResult}"/> that results in a <see cref="IndexEntry?"/> when it completes. The result
+    /// A <see cref="ValueTask{TResult}"/> that results in a <see cref="IndexEntry"/> when it completes. The result
     /// will be null if there are no more entries left to be read from the index.
     /// </returns>
     private async ValueTask<IndexEntry?> ReadIndexEntryAsync(

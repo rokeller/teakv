@@ -13,6 +13,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct DateTimeFormatter : IFormatter<DateTime>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="DateTimeFormatter"/>.
+        /// </summary>
         public DateTimeFormatter() { }
 
         /// <inheritdoc/>

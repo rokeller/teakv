@@ -13,6 +13,9 @@ partial class PrimitiveFormatters
     /// </summary>
     public readonly struct DecimalFormatter : IFormatter<decimal>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="DecimalFormatter"/>.
+        /// </summary>
         public DecimalFormatter() { }
 
         /// <inheritdoc/>

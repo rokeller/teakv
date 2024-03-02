@@ -21,7 +21,7 @@ partial class PrimitiveFormatters
         private const int MaxStackAlloc = 1024;
 
         /// <summary>
-        /// The <see cref="Encoding"> to use for string serialization and deserialization.
+        /// The <see cref="Encoding"/> to use for string serialization and deserialization.
         /// </summary>
         private readonly Encoding encoding = Encoding.UTF8;
 
