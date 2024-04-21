@@ -1,9 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShortUrl", "examples\ShortUrl\ShortUrl.csproj", "{8829FFE2-54E3-4735-BE75-1034633E285B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeopleStore", "examples\PeopleStore\PeopleStore.csproj", "{8C3BA42A-3A25-447F-B9AE-3B3C514CBF5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +20,12 @@ Global
 		{8829FFE2-54E3-4735-BE75-1034633E285B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8829FFE2-54E3-4735-BE75-1034633E285B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8829FFE2-54E3-4735-BE75-1034633E285B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C3BA42A-3A25-447F-B9AE-3B3C514CBF5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C3BA42A-3A25-447F-B9AE-3B3C514CBF5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C3BA42A-3A25-447F-B9AE-3B3C514CBF5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C3BA42A-3A25-447F-B9AE-3B3C514CBF5C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8C3BA42A-3A25-447F-B9AE-3B3C514CBF5C} = {BD4AB762-52B4-4566-85BA-85F505145D36}
 	EndGlobalSection
 EndGlobal
