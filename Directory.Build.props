@@ -4,6 +4,8 @@
         <Nullable>enable</Nullable>
         <LibraryTargetFrameworks>net6.0;net7.0;net8.0;netstandard2.1</LibraryTargetFrameworks>
         <TestTargetFrameworks>net6.0;net7.0;net8.0</TestTargetFrameworks>
+        <ExampleAppTargetFramework>net8.0</ExampleAppTargetFramework>
+        <ExampleAppSystemDependencyVersionWildcard>8.0.*</ExampleAppSystemDependencyVersionWildcard>
     </PropertyGroup>
 
     <PropertyGroup Label="SystemDependencyVersions">

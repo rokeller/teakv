@@ -60,7 +60,7 @@ All that is necessary for custom types of any complexity is to implement and reg
 type. Let's assume you have records of people as follows:
 
 ```csharp
-readonly struct Person
+readonly record struct Person
 {
     public Person(string firstName, string lastName, int age)
     {
@@ -143,7 +143,7 @@ as follows:
 ```csharp
 using TeaSuite.KV;
 
-namespace TestApp;
+namespace PeopleStore;
 
 sealed class PeopleDirectory
 {
@@ -152,11 +152,6 @@ sealed class PeopleDirectory
     public PeopleDirectory(IKeyValueStore<Guid, Person> store)
     {
         this.store = store;
-    }
-
-    public void Write(Guid key, Person person)
-    {
-        store.Set(key, person);
     }
 
     public Person? Get(Guid key)
@@ -168,6 +163,16 @@ sealed class PeopleDirectory
 
         return default;
     }
+
+    public void Write(Guid key, Person person)
+    {
+        store.Set(key, person);
+    }
+
+    public void Delete(Guid key)
+    {
+        store.Delete(key);
+    }
 }
 ```
 
@@ -176,3 +181,4 @@ sealed class PeopleDirectory
 This repository contains more [examples](examples):
 
 1. A simple [URL shortening service](examples/ShortUrl/).
+2. A command line [tool to manage a people directory](examples/PeopleStore/).
