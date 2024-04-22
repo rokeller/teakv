@@ -1,5 +1,11 @@
 # TeaSuite Key-Value Store
 
+![GitHub Release](https://img.shields.io/github/v/release/rokeller/teakv)
+![GitHub Open Issues](https://img.shields.io/github/issues/rokeller/teakv)
+![GitHub Open Pull Requests](https://img.shields.io/github/issues-pr/rokeller/teakv)
+![NuGet Version](https://img.shields.io/nuget/v/teasuite.kv)
+![NuGet Downloads](https://img.shields.io/nuget/dt/teasuite.kv)
+
 A simple in-process / embedded Key-Value store for .Net. Writes and deletes are
 first made in-memory (so they are very fast). The data stored in-memory can
 periodically be flushed to segments on disk. Segments are stored in sorted order
