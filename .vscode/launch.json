@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Examples/Graph",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/graph/bin/Debug/net8.0/graph.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/examples/graph",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/TestApp/bin/Debug/net8.0/TestApp.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/TestApp",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}

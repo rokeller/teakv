@@ -1,0 +1,15 @@
+root = true
+
+[*]
+insert_final_newline = true
+charset = utf-8
+
+# C# formatting rules
+[*.{cs}]
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+trim_trailing_whitespace = true
+max_line_length = 80
+csharp_max_line_length = 80
+csharp_wrap_before_comma = false
+csharp_wrap_before_eq = false
