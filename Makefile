@@ -6,6 +6,11 @@ build:
 examples:
 	dotnet build Examples.sln
 
+.PHONY: clean
+clean:
+	dotnet clean TeaSuite.KV.sln
+	dotnet clean Examples.sln
+
 .PHONY: restore
 restore:
 	dotnet restore --force-evaluate TeaSuite.KV.sln
@@ -25,3 +30,7 @@ coverage:
 		-targetdir:"coverage"                                 \
 		-historydir:"coverage/history"                        \
 		'-reporttypes:Html_Dark;MarkdownSummaryGithub'
+
+.PHONY: pack
+pack:
+	dotnet pack TeaSuite.KV.sln --configuration Release --output packages/
