@@ -8,7 +8,7 @@ namespace TeaSuite.KV.IO;
 /// <summary>
 /// Defines extensions for <see cref="Stream"/> objects.
 /// </summary>
-public static class StreamExtensions
+public static partial class StreamExtensions
 {
     /// <summary>
     /// Fills the given <paramref name="buffer"/> with data from the <see cref="Stream"/>
