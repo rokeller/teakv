@@ -1,4 +1,5 @@
 using AutoFixture.Xunit2;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using TeaSuite.KV.IO.Formatters;
@@ -25,6 +26,7 @@ public sealed partial class FileWriteAheadLogTests
             Path.GetTempPath(), "FileWriteAheadLogTests", Guid.NewGuid().ToString("N"));
 
         wal = new FileWriteAheadLog<int, string>(
+            NullLogger<FileWriteAheadLog<int, string>>.Instance,
             new PrimitiveFormatters.Int32Formatter(),
             new PrimitiveFormatters.StringFormatter(),
             mockSettings.Object,
@@ -39,6 +41,7 @@ public sealed partial class FileWriteAheadLogTests
 
         Assert.False(Directory.Exists(walSettings.LogDirectoryPath));
         new FileWriteAheadLog<int, string>(
+            NullLogger<FileWriteAheadLog<int, string>>.Instance,
             new PrimitiveFormatters.Int32Formatter(),
             new PrimitiveFormatters.StringFormatter(),
             mockSettings.Object,

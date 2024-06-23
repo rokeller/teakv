@@ -2,8 +2,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using TeaSuite.KV.IO;
 using TeaSuite.KV.IO.Formatters;
 
 namespace TeaSuite.KV;
@@ -24,7 +24,6 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     IWriteAheadLog<TKey, TValue>, IDisposable
     where TKey : IComparable<TKey>
 {
-    private const int SimpleWalEntrySize = sizeof(WalEntryTag) + sizeof(long);
     /// <summary>
     /// The name of the WAL file for the currently open WAL.
     /// </summary>
@@ -35,6 +34,7 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     /// </summary>
     private const string ClosedWalFileName = ".wal.closed";
 
+    private readonly ILogger<FileWriteAheadLog<TKey, TValue>> logger;
     private readonly IFormatter<TKey> keyFormatter;
     private readonly IFormatter<TValue> valueFormatter;
     private readonly FileWriteAheadLogSettings settings;
@@ -46,6 +46,9 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     /// <summary>
     /// Initializes a new instance of <see cref="FileWriteAheadLog{TKey, TValue}"/>.
     /// </summary>
+    /// <param name="logger">
+    /// The <see cref="ILogger"/> to use.
+    /// </param>
     /// <param name="keyFormatter">
     /// The <see cref="IFormatter{T}"/> for keys.
     /// </param>
@@ -60,12 +63,14 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     /// The <see cref="ISystemClock"/> to use.
     /// </param>
     public FileWriteAheadLog(
+        ILogger<FileWriteAheadLog<TKey, TValue>> logger,
         IFormatter<TKey> keyFormatter,
         IFormatter<TValue> valueFormatter,
         IOptionsMonitor<FileWriteAheadLogSettings> options,
         ISystemClock clock
         )
     {
+        this.logger = logger;
         this.keyFormatter = keyFormatter;
         this.valueFormatter = valueFormatter;
         settings = options.GetForStore<FileWriteAheadLogSettings, TKey, TValue>();
@@ -187,142 +192,6 @@ public partial class FileWriteAheadLog<TKey, TValue> :
         wal.Close();
         wal.Dispose();
         wal = null;
-    }
-
-    /// <summary>
-    /// Writes the magic header entry to the WAL.
-    /// </summary>
-    /// <remarks>
-    /// The caller must already have entered the operations semaphore before
-    /// calling this method. The semaphore is <b>not</b> freed by this method.
-    /// </remarks>
-    private void WriteMagic()
-    {
-        WriteSimpleWalEntry(WalEntryTag.Magic, MagicEntryValue);
-    }
-
-    /// <summary>
-    /// Writes a timestamp entry to the WAL.
-    /// </summary>
-    /// <remarks>
-    /// The caller must already have entered the operations semaphore before
-    /// calling this method. The semaphore is <b>not</b> freed by this method.
-    /// </remarks>
-    private void WriteTimestamp()
-    {
-        WriteSimpleWalEntry(WalEntryTag.Timestamp, clock.UtcNow.Ticks);
-    }
-
-    /// <summary>
-    /// Writes the 'close' entry to the WAL, indicating that the WAL has been
-    /// completed.
-    /// </summary>
-    /// <remarks>
-    /// The caller must already have entered the operations semaphore before
-    /// calling this method. The semaphore is <b>not</b> freed by this method.
-    /// </remarks>
-    private void WriteClose()
-    {
-        WriteSimpleWalEntry(WalEntryTag.Close, CloseEntryValue);
-    }
-
-    /// <summary>
-    /// Writes a simple entry to the WAL.
-    /// </summary>
-    /// <param name="tag">
-    /// The <see cref="WalEntryTag"/> to write.
-    /// </param>
-    /// <param name="val">
-    /// The value to write for the entry.
-    /// </param>
-    /// <remarks>
-    /// The caller must already have entered the operations semaphore before
-    /// calling this method. The semaphore is <b>not</b> freed by this method.
-    /// </remarks>
-    private void WriteSimpleWalEntry(WalEntryTag tag, long val)
-    {
-        Debug.Assert(null != wal, "The WAL must be writable.");
-
-        StreamExtensions.Write(wal, (uint)tag);
-        StreamExtensions.Write(wal, val);
-    }
-
-    /// <summary>
-    /// Writes the operation for the given <paramref name="entry"/> to the WAL.
-    /// </summary>
-    /// <param name="entry">
-    /// The <see cref="StoreBuilder{TKey, TValue}"/> operation to write.
-    /// </param>
-    /// <returns>
-    /// A <see cref="ValueTask"/> that completes when the operation completes.
-    /// </returns>
-    private async ValueTask WriteOperationAsync(StoreEntry<TKey, TValue> entry)
-    {
-        Debug.Assert(null != wal, "The WAL must be writable.");
-        WalEntryTag tag = entry.IsDeleted ? WalEntryTag.Delete : WalEntryTag.Write;
-        StreamExtensions.Write(wal, (uint)tag);
-
-        await keyFormatter.WriteAsync(entry.Key, wal, default).ConfigureAwaitLib();
-        if (!entry.IsDeleted)
-        {
-            await valueFormatter.WriteAsync(entry.Value!, wal, default).ConfigureAwaitLib(); ;
-        }
-
-        await wal.FlushAsync().ConfigureAwaitLib();
-    }
-
-    /// <summary>
-    /// Checks if the WAL in the given <paramref name="stream"/> is valid.
-    /// </summary>
-    /// <param name="stream">
-    /// The <see cref="Stream"/> representing the WAL.
-    /// </param>
-    /// <returns>
-    /// <c>True</c> if the <paramref name="stream"/> represents a valid WAL,
-    /// <c>False</c> otherwise.
-    /// </returns>
-    private static bool IsValidWal(Stream stream)
-    {
-        try
-        {
-            (WalEntryTag tag, long value) = ReadSimpleWalEntry(stream);
-            // The WAL is valid if the first entry matches the 'magic' tag with
-            // the 'magic' value.
-            return WalEntryTag.Magic == tag && MagicEntryValue == value;
-        }
-        catch (EndOfStreamException)
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Checks if the WAL in the given <paramref name="stream"/> was closed
-    /// properly.
-    /// </summary>
-    /// <param name="stream">
-    /// The <see cref="Stream"/> representing the WAL.
-    /// </param>
-    /// <returns>
-    /// <c>True</c> if the <paramref name="stream"/> represents a properly closed
-    /// WAL, <c>False</c> otherwise.
-    /// </returns>
-    private static bool IsClosedWal(Stream stream)
-    {
-        stream.Seek(-SimpleWalEntrySize, SeekOrigin.End);
-        (WalEntryTag tag, long value) = ReadSimpleWalEntry(stream);
-
-        // The WAL is closed if the last entry matches the 'close' tag with the
-        // 'close' value.
-        return WalEntryTag.Close == tag && CloseEntryValue == value;
-    }
-
-    private static (WalEntryTag tag, long value) ReadSimpleWalEntry(Stream wal)
-    {
-        StreamExtensions.Read(wal, out uint tag);
-        StreamExtensions.Read(wal, out long value);
-
-        return ((WalEntryTag)tag, value);
     }
 
     private FileInfo GetWalFile(string name)
