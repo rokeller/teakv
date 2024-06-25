@@ -144,17 +144,20 @@ partial class FileWriteAheadLog<TKey, TValue>
     }
 
     /// <summary>
-    /// Checks if the WAL in the given <paramref name="stream"/> is valid.
+    /// Checks if the WAL in the given <paramref name="walFile"/> is valid.
     /// </summary>
-    /// <param name="stream">
-    /// The <see cref="Stream"/> representing the WAL.
+    /// <param name="walFile">
+    /// The <see cref="FileInfo"/> representing the WAL.
     /// </param>
     /// <returns>
-    /// <c>True</c> if the <paramref name="stream"/> represents a valid WAL,
+    /// <c>True</c> if the <paramref name="walFile"/> represents a valid WAL,
     /// <c>False</c> otherwise.
     /// </returns>
-    private static bool IsValidWal(Stream stream)
+    private static bool IsValidWal(FileInfo walFile)
     {
+        using Stream stream = walFile.Open(FileMode.Open,
+                                           FileAccess.Read,
+                                           FileShare.Read);
         try
         {
             (WalEntryTag tag, long value) = ReadSimpleWalEntry(stream);

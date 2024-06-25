@@ -20,11 +20,18 @@ public interface IWriteAheadLog<TKey, TValue>
     /// <summary>
     /// Starts the WAL.
     /// </summary>
+    /// <param name="recover">
+    /// An <see cref="Action{T}"/> that is called to receive an
+    /// <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/>
+    /// values that are recovered from previous write-ahead logs, if any. These
+    /// key-value store entries should typically be added to the in-memory
+    /// store on startup for recovery.
+    /// </param>
     /// <remarks>
     /// This method must only be called after any recovery has been executed if
     /// needed.
     /// </remarks>
-    void Start();
+    void Start(Action<IEnumerator<StoreEntry<TKey, TValue>>>? recover);
 
     /// <summary>
     /// Asynchronously announces that the given <paramref name="entry"/> should
@@ -69,21 +76,4 @@ public interface IWriteAheadLog<TKey, TValue>
     /// recovery needed before the next start.
     /// </summary>
     void Shutdown();
-
-    /// <summary>
-    /// Gets a flag indicating whether recovery should be attempted.
-    /// </summary>
-    /// <returns>
-    /// <c>true</c> if recovery should be attempted, or <c>false</c> otherwise.
-    /// </returns>
-    bool ShouldRecover();
-
-    /// <summary>
-    /// Recovers the write operations from a previous unclean process termination.
-    /// </summary>
-    /// <returns>
-    /// An <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/>
-    /// to enumerate all write operations from the previous write-ahead log.
-    /// </returns>
-    IEnumerator<StoreEntry<TKey, TValue>> Recover();
 }

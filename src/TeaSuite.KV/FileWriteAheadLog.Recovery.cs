@@ -13,61 +13,121 @@ partial class FileWriteAheadLog<TKey, TValue>
     private const long MagicEntryValue = 0x00000000_2d_4c_41_57;
     private const long CloseEntryValue = 0;
 
-    /// <inheritdoc/>
-    public bool ShouldRecover()
+    private const string WalUnderRecoverySuffix = ".recover";
+
+    private Recovery PrepareRecovery()
     {
+        Recovery recovery = new();
         FileInfo closed = GetWalFile(ClosedWalFileName);
 
         if (closed.Exists)
         {
-            using Stream closedWal = closed.Open(FileMode.Open,
-                                                 FileAccess.Read,
-                                                 FileShare.Read);
-            if (IsValidWal(closedWal))
+            if (IsValidWal(closed))
             {
                 // The 'closed' WAL file still exists and is a valid WAL, so we
                 // need to recover.
-                return true;
+                recovery = recovery.AddClosedWal(closed);
             }
-
-            // Let's take this opportunity to delete the 'closed' WAL file, so
-            // we don't bother anymore should recovery be needed.
-            logger.LogWarning(
-                "The WAL file '{closedWal}' is not valid, deleting.",
-                closed.FullName);
-            closed.Delete();
+            else
+            {
+                // Let's take this opportunity to delete the 'closed' WAL file
+                // so it won't cause any issues down the road.
+                logger.LogWarning(
+                    "The WAL file '{closedWal}' is not valid, deleting.",
+                    closed.FullName);
+                closed.Delete();
+            }
         }
 
         FileInfo open = GetWalFile(OpenWalFileName);
-        if (!open.Exists)
+        if (open.Exists)
         {
-            return false;
+            if (IsValidWal(open))
+            {
+                // The 'closed' WAL file still exists and is a valid WAL, so we
+                // need to recover.
+                recovery = recovery.AddOpenWal(open);
+            }
+            else
+            {
+                // Let's take this opportunity to delete the 'open' WAL file
+                // so it won't cause any issues down the road.
+                logger.LogWarning(
+                    "The WAL file '{openWal}' is not valid, deleting.",
+                    closed.FullName);
+                closed.Delete();
+            }
         }
 
-        using Stream openWal = open.Open(FileMode.Open,
-                                         FileAccess.Read,
-                                         FileShare.Read);
-        if (IsValidWal(openWal))
-        {
-            return true;
-        }
-        else
-        {
-            // Let's take this opportunity to delete the 'open' WAL file, so we
-            // don't bother anymore should recovery be started anyway.
-            logger.LogWarning(
-                "The WAL file '{closedWal}' is not valid, deleting.",
-                open.FullName);
-            open.Delete();
-            return false;
-        }
+        return recovery;
     }
 
-    /// <inheritdoc/>
-    public IEnumerator<StoreEntry<TKey, TValue>> Recover()
+    /// <summary>
+    /// Tracks the WAL files that must be included in recovery.
+    /// </summary>
+    private readonly record struct Recovery(
+        FileInfo? ClosedWal,
+        FileInfo? OpenWal)
     {
-        return new RecoveryEnumerator(this);
-    }
+        internal bool NeedsRecovery => null != ClosedWal || null != OpenWal;
+
+        internal Recovery AddClosedWal(FileInfo closedWal)
+        {
+            // Rename the file so as to not cause issues with normal operation
+            // of the WAL.
+            return new Recovery(MoveWalFile(closedWal), OpenWal);
+        }
+
+        internal Recovery AddOpenWal(FileInfo openWal)
+        {
+            // Rename the file so as to not cause issues with normal operation
+            // of the WAL.
+            return new Recovery(ClosedWal, MoveWalFile(openWal));
+        }
+
+        internal FileStream OpenClosedWal()
+        {
+            Debug.Assert(null != ClosedWal, "The 'closed' WAL must not be null.");
+            return OpenWalFile(ClosedWal);
+        }
+
+        internal FileStream OpenOpenWal()
+        {
+            Debug.Assert(null != OpenWal, "The 'open' WAL must not be null.");
+            return OpenWalFile(OpenWal);
+        }
+
+        internal void Cleanup()
+        {
+            if (null != ClosedWal)
+            {
+                ClosedWal.Delete();
+            }
+
+            if (null != OpenWal)
+            {
+                OpenWal.Delete();
+            }
+        }
+
+        private static FileInfo MoveWalFile(FileInfo walFile)
+        {
+            FileInfo target = new FileInfo(walFile.FullName + WalUnderRecoverySuffix);
+            if (target.Exists)
+            {
+                target.Delete();
+            }
+
+            walFile.MoveTo(target.FullName);
+            target.Refresh();
+            return target;
+        }
+
+        private static FileStream OpenWalFile(FileInfo walFile)
+        {
+            return walFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+    };
 
     private enum WalEntryTag : UInt32
     {
@@ -81,32 +141,35 @@ partial class FileWriteAheadLog<TKey, TValue>
     private sealed class RecoveryEnumerator : IEnumerator<StoreEntry<TKey, TValue>>
     {
         private readonly FileWriteAheadLog<TKey, TValue> owner;
+        private readonly Recovery recovery;
         private State state;
         private Stream? wal;
 
-        internal RecoveryEnumerator(FileWriteAheadLog<TKey, TValue> owner)
+        internal RecoveryEnumerator(
+            FileWriteAheadLog<TKey, TValue> owner,
+            Recovery recovery)
         {
             this.owner = owner;
+            this.recovery = recovery;
 
-            FileInfo closed = owner.GetWalFile(ClosedWalFileName);
-            if (closed.Exists)
+            if (null != recovery.ClosedWal)
             {
                 state = State.ProcessingClosedWalFile;
-                wal = closed.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                wal = recovery.OpenClosedWal();
+                owner.logger.LogDebug(
+                    "Starting WAL recovery with '{walPath}'.",
+                    recovery.ClosedWal.FullName);
 
                 return;
             }
 
-            FileInfo open = owner.GetWalFile(OpenWalFileName);
-            if (open.Exists)
-            {
-                state = State.ProcessingOpenWalFile;
-                wal = open.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-
-                return;
-            }
-
-            state = State.FinishedProcessing;
+            Debug.Assert(null != recovery.OpenWal,
+                "We must not start recovery if neither the 'closed' or the 'open' WAL file exists.");
+            state = State.ProcessingOpenWalFile;
+            wal = recovery.OpenOpenWal();
+            owner.logger.LogDebug(
+                "Starting WAL recovery with '{walPath}'.",
+                recovery.OpenWal.FullName);
         }
 
         public StoreEntry<TKey, TValue> Current { get; private set; }
@@ -171,7 +234,7 @@ partial class FileWriteAheadLog<TKey, TValue>
                 case WalEntryTag.Timestamp:
                     Debug.Assert(entry.SimpleValue.HasValue, "The simple value must be set.");
                     owner.logger.LogDebug(
-                        "Read WAL timestamp {timestamp}",
+                        "Read WAL timestamp {timestamp:O}",
                         new DateTime(entry.SimpleValue!.Value, DateTimeKind.Utc));
                     break;
 
@@ -199,25 +262,23 @@ partial class FileWriteAheadLog<TKey, TValue>
             switch (state)
             {
                 case State.ProcessingClosedWalFile:
-                    FileInfo open = owner.GetWalFile(OpenWalFileName);
-                    if (open.Exists)
+                    if (null != recovery.OpenWal)
                     {
-                        wal = open.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                        wal = recovery.OpenOpenWal();
                         owner.logger.LogDebug(
                             "Moving to processing WAL file '{walPath}'.",
-                            open.FullName);
+                            recovery.OpenWal.FullName);
                         state = State.ProcessingOpenWalFile;
+                        return true;
                     }
-                    else
-                    {
-                        state = State.FinishedProcessing;
-                    }
-                    return true;
+                    goto case State.FinishedProcessing;
 
                 case State.ProcessingOpenWalFile:
                 case State.FinishedProcessing:
                 default:
+                    wal = null;
                     state = State.FinishedProcessing;
+                    recovery.Cleanup();
                     return false;
             }
         }

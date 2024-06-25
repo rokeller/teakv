@@ -6,20 +6,35 @@ public sealed class NullWriteAheadLogTests
 {
     private readonly NullWriteAheadLog<int, int> wal = new();
 
-    [Theory, AutoData]
-    public async Task NormalWalLifecycleDoesNothing(int key, int val)
+    [Fact]
+    public void StartNeverCallsRecoverAction()
     {
-        Assert.False(wal.ShouldRecover());
-        wal.Start();
+        int numInvocations = 0;
+        wal.Start((_) => numInvocations++);
+        Assert.Equal(0, numInvocations);
+    }
+
+    [Theory, AutoData]
+    public async Task AnnounceWriteAsyncAlwaysReturnsTrue(int key, int val)
+    {
         Assert.True(await wal.AnnounceWriteAsync(new StoreEntry<int, int>(key, val)));
-        using (await wal.PrepareTransitionAsync()) { };
-        using (await wal.CompleteTransitionAsync()) { };
-        wal.Shutdown();
     }
 
     [Fact]
-    public void RecoverThrowsNotSupportedException()
+    public async Task PrepareTransitionAsyncAlwaysReturnsDisposable()
     {
-        Assert.Throws<NotSupportedException>(() => wal.Recover());
+        using (await wal.PrepareTransitionAsync()) { };
+    }
+
+    [Fact]
+    public async Task CompleteTransitionAsyncAlwaysReturnsDisposable()
+    {
+        using (await wal.CompleteTransitionAsync()) { };
+    }
+
+    [Fact]
+    public void ShutdownDoesNothing()
+    {
+        wal.Shutdown();
     }
 }

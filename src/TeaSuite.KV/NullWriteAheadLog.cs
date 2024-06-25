@@ -24,7 +24,7 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
     public static readonly NullWriteAheadLog<TKey, TValue> Instance = new();
 
     /// <inheritdoc/>
-    public void Start()
+    public void Start(Action<IEnumerator<StoreEntry<TKey, TValue>>>? recover)
     {
         // Intentionally left blank.
     }
@@ -54,18 +54,5 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
     public void Shutdown()
     {
         // Intentionally left blank.
-    }
-
-    /// <inheritdoc/>
-    public bool ShouldRecover()
-    {
-        // Recovery is never needed.
-        return false;
-    }
-
-    /// <inheritdoc/>
-    public IEnumerator<StoreEntry<TKey, TValue>> Recover()
-    {
-        throw new NotSupportedException();
     }
 }

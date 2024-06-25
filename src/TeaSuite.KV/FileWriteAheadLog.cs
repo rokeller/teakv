@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -80,19 +81,28 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     }
 
     /// <inheritdoc/>
-    public void Start()
+    public void Start(Action<IEnumerator<StoreEntry<TKey, TValue>>>? recover)
     {
-        using GuardCompletion tx = StartGuard();
-        FileInfo open = GetWalFile(OpenWalFileName);
-        // Create the 'open' file and overwrite if it already exists. We would
-        // have recovered from it before.
-        wal = new FileStream(open.FullName,
-                             FileMode.Create,
-                             FileAccess.Write,
-                             FileShare.None,
-                             settings.BufferSize);
-        wal.SetLength(settings.ReservedSize);
-        InitWal();
+        Recovery recovery = PrepareRecovery();
+
+        using (GuardCompletion tx = StartGuard())
+        {
+            FileInfo open = GetWalFile(OpenWalFileName);
+            // Create the 'open' file and overwrite if it already exists. We
+            // would have recovered from it before.
+            wal = new FileStream(open.FullName,
+                                 FileMode.Create,
+                                 FileAccess.Write,
+                                 FileShare.None,
+                                 settings.BufferSize);
+            wal.SetLength(settings.ReservedSize);
+            InitWal();
+        }
+
+        if (recovery.NeedsRecovery)
+        {
+            recover?.Invoke(new RecoveryEnumerator(this, recovery));
+        }
     }
 
     /// <inheritdoc/>

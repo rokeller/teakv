@@ -6,13 +6,15 @@ namespace TeaSuite.KV;
 partial class FileWriteAheadLogTests
 {
     [Fact]
-    public void ShouldRecoverReturnsFalseWhenWalFilesMissing()
+    public void RecoverySkippedWhenWalFilesMissing()
     {
-        Assert.False(wal.ShouldRecover());
+        int numInvocations = 0;
+        wal.Start((_) => numInvocations++);
+        Assert.Equal(0, numInvocations);
     }
 
     [Fact]
-    public void ShouldRecoverReturnsFalseWhenWalFilesExistButAreEmpty()
+    public void RecoverySkippedWhenWalFilesExistButAreEmpty()
     {
         string openFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
         string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.closed");
@@ -20,116 +22,178 @@ partial class FileWriteAheadLogTests
         using (File.Create(openFile)) { }
         using (File.Create(closedFile)) { }
 
-        Assert.False(wal.ShouldRecover());
+        int numInvocations = 0;
+        wal.Start((_) => numInvocations++);
+        Assert.Equal(0, numInvocations);
     }
 
-    [Fact]
-    public void ShouldRecoverReturnsFalseWhenClosedWalFileIsInvalid()
+    [Theory]
+    [InlineData(".wal.closed")]
+    [InlineData(".wal.open")]
+    public void RecoverySkippedWhenWalFileIsInvalid_OnlyZeroes(string walFileName)
     {
-        string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.closed");
-
-        using (Stream stream = File.Create(closedFile))
+        string walFile = Path.Combine(walSettings.LogDirectoryPath, walFileName);
+        using (Stream stream = File.Create(walFile))
         {
             stream.SetLength(128);
         }
 
-        Assert.False(wal.ShouldRecover());
+        int numInvocations = 0;
+        wal.Start((_) => numInvocations++);
+        Assert.Equal(0, numInvocations);
+    }
 
-        // Create a WAL with an invalid magic value.
-        using (Stream stream = File.Create(closedFile))
+    [Theory]
+    [InlineData(".wal.closed")]
+    [InlineData(".wal.open")]
+    public void RecoverySkippedWhenWalFileIsInvalid_InvalidMagic(string walFileName)
+    {
+        string walFile = Path.Combine(walSettings.LogDirectoryPath, walFileName);
+        using (Stream stream = File.Create(walFile))
         {
             stream.Write(ConstructNonClosedWalWithInvalidMagicVal());
         }
 
-        Assert.False(wal.ShouldRecover());
+        int numInvocations = 0;
+        wal.Start((_) => numInvocations++);
+        Assert.Equal(0, numInvocations);
     }
 
-    [Fact]
-    public void ShouldRecoverReturnsFalseWhenOpenWalFileIsInvalid()
+    [Theory]
+    [InlineData(".wal.closed")]
+    [InlineData(".wal.open")]
+    public void RecoveryStartedWhenWalIsValid(string walFileName)
     {
-        string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
-
-        using (Stream stream = File.Create(closedFile))
-        {
-            stream.SetLength(128);
-        }
-
-        Assert.False(wal.ShouldRecover());
-
-        // Create a WAL with an invalid magic value.
-        using (Stream stream = File.Create(closedFile))
-        {
-            stream.Write(ConstructNonClosedWalWithInvalidMagicVal());
-        }
-
-        Assert.False(wal.ShouldRecover());
-    }
-
-    [Fact]
-    public void ShouldRecoverReturnsTrueWhenClosedWalIsValid()
-    {
-        string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.closed");
-
-        using (Stream stream = File.Create(closedFile))
+        string walFile = Path.Combine(walSettings.LogDirectoryPath, walFileName);
+        using (Stream stream = File.Create(walFile))
         {
             stream.Write(ConstructNonClosedWal());
         }
 
-        Assert.True(wal.ShouldRecover());
+        int numInvocations = 0;
+        wal.Start((e) =>
+        {
+            numInvocations++;
+            Assert.NotNull(e);
+            using (e)
+            {
+                // The WAL is empty, there must not be entries.
+                Assert.False(e.MoveNext());
+            }
+        });
+        Assert.Equal(1, numInvocations);
     }
 
-    [Fact]
-    public void ShouldRecoverReturnsTrueWhenOpenWalIsNotClosed()
+    [Theory]
+    [InlineData(".wal.closed")]
+    [InlineData(".wal.open")]
+    public void RecoveryStartedWhenWalIsValidButWithIncompleteEntries(string walFileName)
     {
-        string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
+        string walFile = Path.Combine(walSettings.LogDirectoryPath, walFileName);
+        using (Stream stream = File.Create(walFile))
+        {
+            stream.Write(ConstructNonClosedWalWithIncompleteEntry());
+        }
 
-        using (Stream stream = File.Create(closedFile))
+        int numInvocations = 0;
+        wal.Start((e) =>
+        {
+            numInvocations++;
+            Assert.NotNull(e);
+            using (e)
+            {
+                // The WAL is empty, there must not be entries.
+                Assert.False(e.MoveNext());
+                // There must still not be any more entries.
+                Assert.False(e.MoveNext());
+            }
+        });
+        Assert.Equal(1, numInvocations);
+    }
+
+    [Theory]
+    [InlineData(".wal.closed")]
+    [InlineData(".wal.open")]
+    public void RecoveryStartedWhenRecoveryWalAlreadyExists(string walFileName)
+    {
+        string walFile = Path.Combine(walSettings.LogDirectoryPath, walFileName);
+        File.Create(walFile + ".recover");
+        using (Stream stream = File.Create(walFile))
         {
             stream.Write(ConstructNonClosedWal());
         }
 
-        Assert.True(wal.ShouldRecover());
+        int numInvocations = 0;
+        wal.Start((e) =>
+        {
+            numInvocations++;
+            Assert.NotNull(e);
+            using (e)
+            {
+                // The WAL is empty, there must not be entries.
+                Assert.False(e.MoveNext());
+            }
+        });
+        Assert.Equal(1, numInvocations);
     }
 
-    [Theory, AutoData]
-    public void RecoverWorksForClosedWal(int key, string val)
+    [Theory]
+    [InlineAutoData(".wal.closed")]
+    [InlineAutoData(".wal.open")]
+    public void RecoverWorksForIncompleteEnumeration(string walFileName, int key, string val)
     {
-        string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.closed");
-        using (Stream stream = File.Create(closedFile))
+        string walFile = Path.Combine(walSettings.LogDirectoryPath, walFileName);
+        using (Stream stream = File.Create(walFile))
         {
             stream.Write(ConstructWalWithWriteEntry(key, val));
         }
 
-        using IEnumerator<StoreEntry<int, string>> enumerator = wal.Recover();
-        Assert.True(enumerator.MoveNext());
-        Assert.Equal(new StoreEntry<int, string>(key, val), enumerator.Current);
-        Assert.False(enumerator.MoveNext());
+        int numInvocations = 0;
+        wal.Start((e) =>
+        {
+            numInvocations++;
+            Assert.NotNull(e);
+            using (e)
+            {
+                // The WAL has one entry.
+                Assert.True(e.MoveNext());
+                Assert.Equal(new StoreEntry<int, string>(key, val), e.Current);
+                // We don't check if there are more entries.
+            }
+        });
+        Assert.Equal(1, numInvocations);
     }
 
-    [Theory, AutoData]
-    public void RecoverWorksForOpenWal(int key)
+    [Theory]
+    [InlineAutoData(".wal.closed")]
+    [InlineAutoData(".wal.open")]
+    public void RecoverWorksForSingleWalWithSingleEntry(string walFileName, int key, string val)
     {
-        string openFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
-        using (Stream stream = File.Create(openFile))
+        string walFile = Path.Combine(walSettings.LogDirectoryPath, walFileName);
+        using (Stream stream = File.Create(walFile))
         {
-            stream.Write(ConstructWalWithDeleteEntry(key));
+            stream.Write(ConstructWalWithWriteEntry(key, val));
         }
 
-        using IEnumerator<StoreEntry<int, string>> enumerator = wal.Recover();
-        Assert.True(enumerator.MoveNext());
-        Assert.Equal(StoreEntry<int, string>.Delete(key), enumerator.Current);
-        Assert.False(enumerator.MoveNext());
-    }
-
-    [Fact]
-    public void RecoverYieldsNothingForMissingWalFiles()
-    {
-        using IEnumerator<StoreEntry<int, string>> enumerator = wal.Recover();
-        Assert.False(enumerator.MoveNext());
+        int numInvocations = 0;
+        wal.Start((e) =>
+        {
+            numInvocations++;
+            Assert.NotNull(e);
+            using (e)
+            {
+                // The WAL has one entry.
+                Assert.True(e.MoveNext());
+                Assert.Equal(new StoreEntry<int, string>(key, val), e.Current);
+                Assert.False(e.MoveNext());
+                Assert.False(e.MoveNext());
+            }
+        });
+        Assert.Equal(1, numInvocations);
     }
 
     [Theory, AutoData]
-    public void RecoverWorksForCombinationOfClosedAndOpenWal(
+    public void RecoverWorksForCombinationOfClosedWals(
         Generator<int> keyGen,
         Generator<string> valGen)
     {
@@ -144,9 +208,9 @@ partial class FileWriteAheadLogTests
         {
             List<StoreEntry<int, string>> entries = new List<StoreEntry<int, string>>()
             {
-                new StoreEntry<int, string>(keys[nextKey++], values[nextVal++]),
+                new(keys[nextKey++], values[nextVal++]),
                 StoreEntry<int, string>.Delete(keys[nextKey++]),
-                new StoreEntry<int, string>(keys[nextKey++], values[nextVal++]),
+                new(keys[nextKey++], values[nextVal++]),
             };
             expectedEntries.AddRange(entries);
             stream.Write(ConstructClosedWalWithEntries(entries));
@@ -158,22 +222,88 @@ partial class FileWriteAheadLogTests
             List<StoreEntry<int, string>> entries = new List<StoreEntry<int, string>>()
             {
                 StoreEntry<int, string>.Delete(keys[nextKey++]),
-                new StoreEntry<int, string>(keys[nextKey++], values[nextVal++]),
+                new(keys[nextKey++], values[nextVal++]),
                 StoreEntry<int, string>.Delete(keys[nextKey++]),
             };
             expectedEntries.AddRange(entries);
             stream.Write(ConstructClosedWalWithEntries(entries));
         }
 
-        using IEnumerator<StoreEntry<int, string>> enumerator = wal.Recover();
-        foreach (StoreEntry<int, string> expected in expectedEntries)
+        int numInvocations = 0;
+        wal.Start((e) =>
         {
-            Assert.True(enumerator.MoveNext());
-            Assert.Equal(expected, enumerator.Current);
-            Assert.Equal(expected, ((IEnumerator)enumerator).Current);
+            numInvocations++;
+            Assert.NotNull(e);
+            using (e)
+            {
+                foreach (StoreEntry<int, string> expected in expectedEntries)
+                {
+                    Assert.True(e.MoveNext());
+                    Assert.Equal(expected, e.Current);
+                    Assert.Equal(expected, ((IEnumerator)e).Current);
+                }
+
+                Assert.False(e.MoveNext());
+            }
+        });
+        Assert.Equal(1, numInvocations);
+    }
+
+    [Theory, AutoData]
+    public void RecoverWorksForCombinationOfNonClosedWals(
+        Generator<int> keyGen,
+        Generator<string> valGen)
+    {
+        walSettings.ReservedSize = 1024;
+        int nextKey = 0, nextVal = 0;
+        List<int> keys = keyGen.Take(6).ToList();
+        List<string> values = valGen.Take(3).ToList();
+        List<StoreEntry<int, string>> expectedEntries = new List<StoreEntry<int, string>>();
+
+        string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.closed");
+        using (Stream stream = File.Create(closedFile))
+        {
+            List<StoreEntry<int, string>> entries = new List<StoreEntry<int, string>>()
+            {
+                new(keys[nextKey++], values[nextVal++]),
+                StoreEntry<int, string>.Delete(keys[nextKey++]),
+                new(keys[nextKey++], values[nextVal++]),
+            };
+            expectedEntries.AddRange(entries);
+            stream.Write(ConstructWalWithEntries(entries));
         }
 
-        Assert.False(enumerator.MoveNext());
+        string openFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
+        using (Stream stream = File.Create(openFile))
+        {
+            List<StoreEntry<int, string>> entries = new List<StoreEntry<int, string>>()
+            {
+                StoreEntry<int, string>.Delete(keys[nextKey++]),
+                new(keys[nextKey++], values[nextVal++]),
+                StoreEntry<int, string>.Delete(keys[nextKey++]),
+            };
+            expectedEntries.AddRange(entries);
+            stream.Write(ConstructWalWithEntries(entries));
+        }
+
+        int numInvocations = 0;
+        wal.Start((e) =>
+        {
+            numInvocations++;
+            Assert.NotNull(e);
+            using (e)
+            {
+                foreach (StoreEntry<int, string> expected in expectedEntries)
+                {
+                    Assert.True(e.MoveNext());
+                    Assert.Equal(expected, e.Current);
+                    Assert.Equal(expected, ((IEnumerator)e).Current);
+                }
+
+                Assert.False(e.MoveNext());
+            }
+        });
+        Assert.Equal(1, numInvocations);
     }
 
     [Theory, AutoData]
@@ -189,16 +319,38 @@ partial class FileWriteAheadLogTests
             stream.Write(ConstructWalWithWriteEntry(key, val));
         }
 
-        using IEnumerator<StoreEntry<int, string>> enumerator = wal.Recover();
-        Assert.True(enumerator.MoveNext());
-        Assert.Equal(new StoreEntry<int, string>(key, val), enumerator.Current);
-        Assert.False(enumerator.MoveNext());
+        int numInvocations = 0;
+        wal.Start((e) =>
+        {
+            numInvocations++;
+            Assert.NotNull(e);
+            using (e)
+            {
+                Assert.True(e.MoveNext());
+                Assert.Equal(new StoreEntry<int, string>(key, val), e.Current);
+                Assert.False(e.MoveNext());
+            }
+        });
+        Assert.Equal(1, numInvocations);
     }
 
-    [Fact]
-    public void RecoverResetThrows()
+    [Theory]
+    [InlineData(".wal.closed")]
+    [InlineData(".wal.open")]
+    public void ResetOnRecoveryEnumeratorThrows(string walFileName)
     {
-        using IEnumerator<StoreEntry<int, string>> enumerator = wal.Recover();
-        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+        string walFile = Path.Combine(walSettings.LogDirectoryPath, walFileName);
+        using (Stream stream = File.Create(walFile))
+        {
+            stream.Write(ConstructNonClosedWal());
+        }
+
+        int numInvocations = 0;
+        wal.Start((e) =>
+        {
+            numInvocations++;
+            Assert.Throws<InvalidOperationException>(() => e.Reset());
+        });
+        Assert.Equal(1, numInvocations);
     }
 }

@@ -21,6 +21,12 @@ partial class FileWriteAheadLogTests
         return wal;
     }
 
+    private byte[] ConstructNonClosedWalWithIncompleteEntry()
+    {
+        byte[] wal = ConstructNonClosedWal();
+        return wal[0..20];
+    }
+
     private byte[] ConstructNonClosedWalWithInvalidMagicVal()
     {
         byte[] wal = new byte[walSettings.ReservedSize];

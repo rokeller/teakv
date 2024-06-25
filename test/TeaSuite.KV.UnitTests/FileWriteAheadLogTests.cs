@@ -54,7 +54,7 @@ public sealed partial class FileWriteAheadLogTests
     {
         using (wal)
         {
-            wal.Start();
+            wal.Start(null);
         }
 
         mockSettings.Verify(o => o.Get(optionsName), Times.Once());
@@ -74,7 +74,7 @@ public sealed partial class FileWriteAheadLogTests
     {
         using (wal)
         {
-            wal.Start();
+            wal.Start(null);
             bool res = await wal.AnnounceWriteAsync(new StoreEntry<int, string>(key, val));
             Assert.True(res);
         }
@@ -96,7 +96,7 @@ public sealed partial class FileWriteAheadLogTests
     {
         using (wal)
         {
-            wal.Start();
+            wal.Start(null);
             bool res = await wal.AnnounceWriteAsync(StoreEntry<int, string>.Delete(key));
             Assert.True(res);
         }
@@ -130,7 +130,7 @@ public sealed partial class FileWriteAheadLogTests
     {
         using (wal)
         {
-            wal.Start();
+            wal.Start(null);
             using (await wal.PrepareTransitionAsync())
             { }
         }
@@ -180,7 +180,7 @@ public sealed partial class FileWriteAheadLogTests
         string openFilePath = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
         using (wal)
         {
-            wal.Start();
+            wal.Start(null);
             Assert.True(File.Exists(openFilePath));
             wal.Shutdown();
             Assert.False(File.Exists(openFilePath));
