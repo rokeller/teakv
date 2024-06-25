@@ -14,6 +14,10 @@ builder.Services
 
     .AddKeyValueStore<ulong, string>()
     .AddFileStorage((options) => options.SegmentsDirectoryPath = SegmentsDirPath)
+    .AddWriteAheadLog((settings) =>
+    {
+        settings.LogDirectoryPath = SegmentsDirPath + ".wal";
+    })
     ;
 
 var app = builder.Build();
