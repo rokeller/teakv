@@ -10,7 +10,7 @@ using static TeaSuite.KV.StoreUtils;
 
 namespace TeaSuite.KV;
 
-public sealed class DefaultKeyValueStoreTests
+public sealed partial class DefaultKeyValueStoreTests
 {
     private readonly Fixture fixture = new Fixture();
 
@@ -37,6 +37,7 @@ public sealed class DefaultKeyValueStoreTests
         Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
         DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
             mockSegmentManager.Object,
             mockOptions.Object,
@@ -55,6 +56,7 @@ public sealed class DefaultKeyValueStoreTests
         Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
         DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
             mockSegmentManager.Object,
             mockOptions.Object,
@@ -79,6 +81,7 @@ public sealed class DefaultKeyValueStoreTests
         Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
         DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
             mockSegmentManager.Object,
             mockOptions.Object,
@@ -113,6 +116,7 @@ public sealed class DefaultKeyValueStoreTests
         Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
         DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
             mockSegmentManager.Object,
             mockOptions.Object,
@@ -146,6 +150,7 @@ public sealed class DefaultKeyValueStoreTests
         Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
         DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
             mockSegmentManager.Object,
             mockOptions.Object,
@@ -183,6 +188,7 @@ public sealed class DefaultKeyValueStoreTests
 
         DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
             mockSegmentManager.Object,
             mockOptions.Object,
@@ -233,6 +239,7 @@ public sealed class DefaultKeyValueStoreTests
 
         DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
             mockSegmentManager.Object,
             mockOptions.Object,
@@ -319,6 +326,7 @@ public sealed class DefaultKeyValueStoreTests
 
         DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
+            NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
             mockSegmentManager.Object,
             mockOptions.Object,
