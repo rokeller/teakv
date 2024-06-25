@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,8 @@ namespace TeaSuite.KV;
 
 /// <summary>
 /// Default implementation of the Key/Value store. Uses the currently configured
-/// <see cref="IMemoryKeyValueStoreFactory{TKey, TValue}"/> to create in-memory stores for write operations.
+/// <see cref="IMemoryKeyValueStoreFactory{TKey, TValue}"/> to create in-memory
+/// stores for write operations.
 /// </summary>
 /// <typeparam name="TKey">
 /// The type of the keys used for entries in the Key/Value store.
@@ -19,13 +21,13 @@ namespace TeaSuite.KV;
 /// <typeparam name="TValue">
 /// The type of the values used for entries in the Key/Value store.
 /// </typeparam>
-public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey, TValue>, IAsyncDisposable, IDisposable
+public partial class DefaultKeyValueStore<TKey, TValue>
+    : BaseKeyValueStore<TKey, TValue>, IAsyncDisposable, IDisposable
     where TKey : IComparable<TKey>
 {
     private readonly ILogger<DefaultKeyValueStore<TKey, TValue>> logger;
+    private readonly IWriteAheadLog<TKey, TValue> wal;
     private readonly IMemoryKeyValueStoreFactory<TKey, TValue> memoryStoreFactory;
-    private readonly ISegmentManager<TKey, TValue> segmentManager;
-    private readonly IOptionsMonitor<StoreOptions<TKey, TValue>> options;
     private readonly StoreSettings settings;
     private readonly ISystemClock systemClock;
     private readonly Task pendingMaintenance;
@@ -33,7 +35,8 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     private bool isDisposed;
 
     /// <summary>
-    /// Holds references to the current in-memory store and the past one, iff a flush/persist is in progress.
+    /// Holds references to the current in-memory store and the past one, iff a
+    /// flush/persist is in progress.
     /// </summary>
     private volatile MemoryStores memoryStores;
 
@@ -48,6 +51,10 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     /// <param name="logger">
     /// The <see cref="ILogger{TCategoryName}"/> to use.
     /// </param>
+    /// <param name="wal">
+    /// The <see cref="IWriteAheadLog{TKey, TValue}"/> to use to log write
+    /// operations to the in-memory store for recovery in case of a crash.
+    /// </param>
     /// <param name="memoryStoreFactory">
     /// The <see cref="IMemoryKeyValueStoreFactory{TKey, TValue}"/> to use to
     /// create new instances of <see cref="IMemoryKeyValueStore{TKey, TValue}"/>.
@@ -57,14 +64,15 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     /// segments of the store.
     /// </param>
     /// <param name="options">
-    /// An <see cref="IOptionsMonitor{TOptions}"/> of <see cref="StoreOptions{TKey, TValue}"/>
-    /// holding settings for the store.
+    /// An <see cref="IOptionsMonitor{TOptions}"/> of
+    /// <see cref="StoreOptions{TKey, TValue}"/> holding settings for the store.
     /// </param>
     /// <param name="systemClock">
     /// The <see cref="ISystemClock"/> instance to use.
     /// </param>
     public DefaultKeyValueStore(
         ILogger<DefaultKeyValueStore<TKey, TValue>> logger,
+        IWriteAheadLog<TKey, TValue> wal,
         IMemoryKeyValueStoreFactory<TKey, TValue> memoryStoreFactory,
         ISegmentManager<TKey, TValue> segmentManager,
         IOptionsMonitor<StoreOptions<TKey, TValue>> options,
@@ -72,16 +80,15 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
         : base(logger, segmentManager)
     {
         this.logger = logger;
+        this.wal = wal;
         this.memoryStoreFactory = memoryStoreFactory;
-        this.segmentManager = segmentManager;
-        this.options = options;
         this.settings = options.CurrentValue.Settings;
         this.systemClock = systemClock;
 
         // Start the maintenance worker.
         pendingMaintenance = RunMaintenanceAsync();
         memoryStores = new MemoryStores(memoryStoreFactory.Create());
-
+        wal.Start(Recover);
         lastPersistQueued = systemClock.UtcNow;
     }
 
@@ -93,10 +100,12 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
         IMemoryKeyValueStore<TKey, TValue>? oldStore = memoryStores.Old;
         if (!memoryStores.Current.TryGet(key, out entry))
         {
-            // If we're in the middle of flushing the memory store, check the old memory store too, if available.
+            // If we're in the middle of flushing the memory store, check the
+            // old memory store too, if available.
             if (null == oldStore || !oldStore.TryGet(key, out entry))
             {
-                // We couldn't find the entry in the in-memory stores. It's time to check the segments.
+                // We couldn't find the entry in the in-memory stores. It's time
+                // to check the segments.
                 if (!TryGetFromSegments(key, out entry))
                 {
                     value = default;
@@ -120,21 +129,20 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     /// <inheritdoc/>
     public override void Set(TKey key, TValue value)
     {
-        memoryStores.Current.Set(new StoreEntry<TKey, TValue>(key, value));
-        QueuePersistIfNeeded();
+        WriteEntry(new StoreEntry<TKey, TValue>(key, value));
     }
 
     /// <inheritdoc/>
     public override void Delete(TKey key)
     {
-        memoryStores.Current.Set(StoreEntry<TKey, TValue>.Delete(key));
-        QueuePersistIfNeeded();
+        WriteEntry(StoreEntry<TKey, TValue>.Delete(key));
     }
 
     /// <inheritdoc/>
     public override void Close()
     {
-        // If we do have any write operations that haven't been persisted yet, now's the time.
+        // If we do have any write operations that haven't been persisted yet,
+        // now's the time.
         if (memoryStores.Current.Count > 0)
         {
             StartPersistMemoryStore(force: true);
@@ -162,7 +170,8 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     }
 
     /// <summary>
-    /// Starts a merge operation, provided the current <see cref="IMergePolicy"/> allows it.
+    /// Starts a merge operation, provided the current <see cref="IMergePolicy"/>
+    /// allows it.
     /// </summary>
     public void Merge()
     {
@@ -176,7 +185,8 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     /// Disposes this instance.
     /// </summary>
     /// <param name="disposing">
-    /// A flag which indicates whether the call originated from the <see cref="Dispose()"/> method.
+    /// A flag which indicates whether the call originated from the
+    /// <see cref="Dispose()"/> method.
     /// </param>
     protected virtual void Dispose(bool disposing)
     {
@@ -189,6 +199,8 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
                 Logger.LogDebug("Waiting for maintenance to finish...");
                 pendingMaintenance.GetTaskResult();
                 Logger.LogInformation("Finished maintenance.");
+                ShutdownWal();
+                Logger.LogInformation("Write-ahead log shutdown.");
 
                 storeOpen.Dispose();
             }
@@ -210,8 +222,25 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
         Logger.LogDebug("Waiting for maintenance to finish...");
         await pendingMaintenance.ConfigureAwaitLib();
         Logger.LogInformation("Finished maintenance.");
+        ShutdownWal();
+        Logger.LogInformation("Write-ahead log shutdown.");
 
         storeOpen.Dispose();
+    }
+
+    /// <summary>
+    /// Writes the entry unless the write operation cannot be completed.
+    /// </summary>
+    /// <param name="entry">
+    /// The <see cref="StoreEntry{TKey, TValue}"/> to write to the store.
+    /// </param>
+    private void WriteEntry(StoreEntry<TKey, TValue> entry)
+    {
+        if (wal.AnnounceWriteAsync(entry).GetValueTaskResult())
+        {
+            memoryStores.Current.Set(entry);
+            QueuePersistIfNeeded();
+        }
     }
 
     /// <summary>
@@ -219,9 +248,40 @@ public partial class DefaultKeyValueStore<TKey, TValue> : BaseKeyValueStore<TKey
     /// </summary>
     private void QueuePersistIfNeeded()
     {
-        if (settings.PersistPolicy.ShouldPersist(memoryStores.Current.Count, systemClock.UtcNow - lastPersistQueued))
+        if (settings.PersistPolicy.ShouldPersist(memoryStores.Current.Count,
+                                                 systemClock.UtcNow - lastPersistQueued))
         {
             StartPersistMemoryStore(force: false);
         }
+    }
+
+    /// <summary>
+    /// Recovers from an earlier crash by re-applying the write operations
+    /// (<see cref="IKeyValueStore{TKey, TValue}.Set(TKey, TValue)"/> and
+    /// <see cref="IKeyValueStore{TKey, TValue}.Delete(TKey)"/>) from
+    /// the write-ahead log.
+    /// </summary>
+    /// <param name="enumerator">
+    /// The <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/>
+    /// values that represent the write operations to recover.
+    /// </param>
+    private void Recover(IEnumerator<StoreEntry<TKey, TValue>> enumerator)
+    {
+        using (enumerator)
+        {
+            while (enumerator.MoveNext())
+            {
+                WriteEntry(enumerator.Current);
+            }
+        }
+    }
+
+    private void ShutdownWal()
+    {
+        wal.Shutdown();
+        using (wal.CompleteTransitionAsync().GetValueTaskResult())
+        {
+            // Intentionally left blank.
+        };
     }
 }

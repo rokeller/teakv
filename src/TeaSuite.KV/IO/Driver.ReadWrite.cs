@@ -22,7 +22,7 @@ partial class Driver<TKey, TValue>
     /// </exception>
     private static SegmentMetadata ReadSegmentMetadata(ReadContext context)
     {
-        Read(out uint rawFlags, context.Stream);
+        StreamExtensions.Read(context.Stream, out uint rawFlags);
         SegmentFlags flags = (SegmentFlags)rawFlags;
 
         if (BitConverter.IsLittleEndian ^ flags.HasFlag(SegmentFlags.LittleEndian))
@@ -31,14 +31,14 @@ partial class Driver<TKey, TValue>
                 $"The machine is {(BitConverter.IsLittleEndian ? "little" : "big")} endian but the segment is not.");
         }
 
-        Read(out uint version, context.Stream);
+        StreamExtensions.Read(context.Stream, out uint version);
 
         if (version < 1 || version > SegmentMetadata.CurrentVersion)
         {
             throw new NotSupportedException($"Segments of version {version} are not supported.");
         }
 
-        Read(out long ticks, context.Stream);
+        StreamExtensions.Read(context.Stream, out long ticks);
 
         return new SegmentMetadata(flags, version, new DateTime(ticks, DateTimeKind.Utc));
     }
@@ -54,9 +54,9 @@ partial class Driver<TKey, TValue>
     /// </param>
     private static void WriteSegmentMetadata(WriteContext context, SegmentMetadata metadata)
     {
-        Write((uint)metadata.Flags, context.Stream);
-        Write(metadata.Version, context.Stream);
-        Write(metadata.Timestamp.Ticks, context.Stream);
+        StreamExtensions.Write(context.Stream, (uint)metadata.Flags);
+        StreamExtensions.Write(context.Stream, metadata.Version);
+        StreamExtensions.Write(context.Stream, metadata.Timestamp.Ticks);
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ partial class Driver<TKey, TValue>
         {
             return null;
         }
-        Read(out long position, context.Stream);
+        StreamExtensions.Read(context.Stream, out long position);
 
         return new IndexEntry(indexId, key, position);
     }
@@ -112,7 +112,7 @@ partial class Driver<TKey, TValue>
     private async ValueTask WriteIndexEntryAsync(WriteContext context, IndexEntry entry, CancellationToken cancellationToken)
     {
         await formatter.WriteKeyAsync(entry.Key, context.Stream, cancellationToken).ConfigureAwaitLib();
-        Write(entry.Position, context.Stream);
+        StreamExtensions.Write(context.Stream, entry.Position);
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ partial class Driver<TKey, TValue>
     private static EntryFlags ReadEntryFlags(ReadContext context)
     {
         uint rawFlags;
-        Read(out rawFlags, context.Stream);
+        StreamExtensions.Read(context.Stream, out rawFlags);
         return (EntryFlags)rawFlags;
     }
 
@@ -143,72 +143,6 @@ partial class Driver<TKey, TValue>
     private static void WriteEntryFlags(WriteContext context, StoreEntry<TKey, TValue> entry)
     {
         EntryFlags flags = entry.IsDeleted ? EntryFlags.Deleted : EntryFlags.None;
-        Write((uint)flags, context.Stream);
-    }
-
-    /// <summary>
-    /// Reads a <see cref="long"/> value from the given <paramref name="source"/>.
-    /// </summary>
-    /// <param name="value">
-    /// On return, holds the value that was read.
-    /// </param>
-    /// <param name="source">
-    /// The <see cref="Stream"/> to read the value from.
-    /// </param>
-    private static void Read(out long value, Stream source)
-    {
-        Span<byte> buffer = stackalloc byte[sizeof(long)];
-        source.Fill(buffer);
-        value = BitConverter.ToInt64(buffer);
-    }
-
-    /// <summary>
-    /// Writes a <see cref="long"/> value to the given <paramref name="destination"/>.
-    /// </summary>
-    /// <param name="value">
-    /// The value to write.
-    /// </param>
-    /// <param name="destination">
-    /// The <see cref="Stream"/> to write the value to.
-    /// </param>
-    private static void Write(long value, Stream destination)
-    {
-        Span<byte> buffer = stackalloc byte[sizeof(long)];
-        bool successful = BitConverter.TryWriteBytes(buffer, value);
-        Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
-        destination.Write(buffer);
-    }
-
-    /// <summary>
-    /// Reads a <see cref="uint"/> value from the given <paramref name="source"/>.
-    /// </summary>
-    /// <param name="value">
-    /// On return, holds the value that was read.
-    /// </param>
-    /// <param name="source">
-    /// The <see cref="Stream"/> to read the value from.
-    /// </param>
-    private static void Read(out uint value, Stream source)
-    {
-        Span<byte> buffer = stackalloc byte[sizeof(uint)];
-        source.Fill(buffer);
-        value = BitConverter.ToUInt32(buffer);
-    }
-
-    /// <summary>
-    /// Writes a <see cref="uint"/> value to the given <paramref name="destination"/>.
-    /// </summary>
-    /// <param name="value">
-    /// The value to write.
-    /// </param>
-    /// <param name="destination">
-    /// The <see cref="Stream"/> to write the value to.
-    /// </param>
-    private static void Write(uint value, Stream destination)
-    {
-        Span<byte> buffer = stackalloc byte[sizeof(uint)];
-        bool successful = BitConverter.TryWriteBytes(buffer, value);
-        Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
-        destination.Write(buffer);
+        StreamExtensions.Write(context.Stream, (uint)flags);
     }
 }

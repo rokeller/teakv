@@ -19,6 +19,11 @@ more segments need to be searched for entries that do not exist. Therefore, the
 segments can be merged (aka compacted) so that reads in segments can be made
 faster.
 
+Staring with version 0.3, the Key-Value store also supports the use of a
+write-ahead log (WAL) for write operations (`Set` and `Delete`), but the default
+is to not use the WAL (for backwards compatibility). Read more about the use of
+a WAL below in [Crash Recovery](#crash-recovery).
+
 ## Usage Examples
 
 ### `int`/`string` Key-Value Store on local disk
@@ -44,26 +49,29 @@ services
     .AddFileStorage(context.Configuration.GetSection("TeaSuite:KV:Int32ToString:Location"));
 ```
 
-With the following JSON configuration, the data would be persisted to segments in the directory `my-stores/int-string/`.
+With the following JSON configuration, the data would be persisted to segments
+in the directory `my-stores/int-string/`.
 
 ```JSON
 {
-    "TeaSuite": {
-        "KV": {
-            "Int32ToString": {
-                "Location": {
-                    "SegmentsDirectoryPath": "my-stores/int-string/"
-                }
-            }
+  "TeaSuite": {
+    "KV": {
+      "Int32ToString": {
+        "Location": {
+          "SegmentsDirectoryPath": "my-stores/int-string/"
         }
+      }
     }
+  }
+}
 
 ```
 
 ### Using Custom/Complex Types
 
-All that is necessary for custom types of any complexity is to implement and registeryour own `IFormatter<T>` for that
-type. Let's assume you have records of people as follows:
+All that is necessary for custom types of any complexity is to implement and
+register your own `IFormatter<T>` for that type. Let's assume you have records
+of people as follows:
 
 ```csharp
 readonly record struct Person
@@ -86,10 +94,12 @@ readonly record struct Person
 }
 ```
 
-And you build a `IFormatter<Person>` as follows, relying on the existing formatters for `string` and `int`. Of course,
-you could also use any other implementation including but not limited to Google Protocol Buffers, and even `JSON`. The
-important thing to remember is that whatever encoding/formatting is used, you must be able to read only the exact number
-of bytes from the stream when deserializing. Reading beyond will cause corruption for records that follow.
+And you build a `IFormatter<Person>` as follows, relying on the existing
+formatters for `string` and `int`. Of course, you could also use any other
+implementation including but not limited to Google Protocol Buffers, and even
+`JSON`. The important thing to remember is that whatever encoding/formatting is
+used, you must be able to read only the exact number of bytes from the stream
+when deserializing. Reading beyond will cause corruption for records that follow.
 
 ```csharp
 readonly struct PersonFormatter : IFormatter<Person>
@@ -133,8 +143,8 @@ readonly struct PersonFormatter : IFormatter<Person>
 }
 ```
 
-Now you register the Key-Value store for `Guid` keys and `Person` values as follows to persist values in the `people`
-directory:
+Now you register the Key-Value store for `Guid` keys and `Person` values as
+follows to persist values in the `people` directory:
 
 ```csharp
 services
@@ -143,8 +153,8 @@ services
     .AddFileStorage((options) => options.SegmentsDirectoryPath = "people");
 ```
 
-When you want to consume the store now, inject an instance of `IKeyValueStore<Guid, Person>`  in your code and use it
-as follows:
+When you want to consume the store now, inject an instance of
+`IKeyValueStore<Guid, Person>`  in your code and use it as follows:
 
 ```csharp
 using TeaSuite.KV;
@@ -181,6 +191,38 @@ sealed class PeopleDirectory
     }
 }
 ```
+
+### Crash Recovery
+
+By default, the Key-Value store does not recover entries written to the in-memory
+store but not persisted to segments yet after crashes. That functionality can
+however easily be enabled through the use of a write-ahead log that persists
+each write operation (`Set` and `Delete`) to a log file on disk before the
+operation is applied to the in-memory store. Should a crash occur, the next time
+the Key-Value store is instantiated again, it will read the write-ahead log and
+recover all previously written yet uncommitted records from that log.
+
+To add this cash recovery, all you need to do is register the default file-based
+write-ahead log for your Key-Value store, like so:
+
+```csharp
+services
+    .AddKeyValueStore<ulong, string>()
+    .AddWriteAheadLog((settings) =>
+    {
+        // Where to put the write-ahead log files
+        settings.LogDirectoryPath = ".wal";
+        // How big a file to reserve upfront for the write-ahead log
+        settings.ReservedSize = 128 * 1024 * 1024; // 128 MiB
+    });
+```
+
+Please note that the write-ahead log really only makes sense for a writable
+Key-Value store. Using it does have a performance impact on the Key-Value store
+at least as far as the write operations are concerned, because each of them is
+first committed to the write-ahead log before committing the changes to the
+in-memory store. Accordingly, if your application does not need crash recovery,
+you may fare better without the write-ahead log.
 
 ## More Examples
 

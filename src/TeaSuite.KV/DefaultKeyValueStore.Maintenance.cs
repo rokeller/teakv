@@ -60,7 +60,7 @@ partial class DefaultKeyValueStore<TKey, TValue>
             Logger.LogDebug("Queueing persist. Last persisted: {lastPersisted}", lastPersistQueued);
             lastPersistQueued = systemClock.UtcNow;
 
-            maintenanceQueue.Enqueue(() => PersistMemoryStoreAsync());
+            maintenanceQueue.Enqueue(() => SwapMemoryStoresAndPersistAsync());
         }
 
         maintenanceQueue.Enqueue(() => Task.Run(CheckAndEnqueue));
@@ -71,25 +71,54 @@ partial class DefaultKeyValueStore<TKey, TValue>
         maintenanceQueue.Enqueue(MergeAsync);
     }
 
-    private async Task PersistMemoryStoreAsync()
+    private async Task SwapMemoryStoresAndPersistAsync()
     {
-        Debug.Assert(memoryStores.Old == null, "The current memory stores must not track a past store.");
+        Debug.Assert(memoryStores.Old == null,
+            "The current memory stores must not track a past store.");
 
         Stopwatch watch = Stopwatch.StartNew();
         IMemoryKeyValueStore<TKey, TValue> newStore = memoryStoreFactory.Create();
         IMemoryKeyValueStore<TKey, TValue> oldStore = memoryStores.Current;
         MemoryStores newMemoryStores = new MemoryStores(newStore, memoryStores);
-        Interlocked.Exchange(ref memoryStores, newMemoryStores);
+
+        // Do a transactional swap of the current in-memory store to the new one
+        // together with wrapping up the write-ahead log.
+        using (await wal.PrepareTransitionAsync())
+        {
+            Interlocked.Exchange(ref memoryStores, newMemoryStores);
+        }
+
+        long numEntries = await PersistMemoryStoreToSegmentAsync(oldStore);
+
+        // Complete the above swap to the new in-memory store and get rid of the
+        // old in-memory store as well as its write-ahead log.
+        using (await wal.CompleteTransitionAsync().ConfigureAwaitLib())
+        {
+            Interlocked.Exchange(ref memoryStores, new MemoryStores(newStore));
+        }
+        watch.Stop();
+        Logger.LogInformation(
+            "Finished persisting memory store with {numEntries} entries in {ms}ms.",
+            numEntries, watch.ElapsedMilliseconds);
+    }
+
+    private async Task<long> PersistMemoryStoreToSegmentAsync(
+        IMemoryKeyValueStore<TKey, TValue> store
+        )
+    {
         long numEntries = 0;
 
-        if (oldStore.Count > 0)
+        if (store.Count > 0)
         {
             long newSegmentId = GetNextSegmentId();
-            Logger.LogInformation("Starting to persist memory store to new segment {segmentId}.", newSegmentId);
+            Logger.LogInformation(
+                "Starting to persist memory store to new segment {segmentId}.",
+                newSegmentId);
 
             Segment<TKey, TValue> segment = SegmentManager.CreateNewSegment(newSegmentId);
             using Driver<TKey, TValue> driver = segment.Driver;
-            using IEnumerator<StoreEntry<TKey, TValue>> enumerator = oldStore.GetOrderedEnumerator();
+            using IEnumerator<StoreEntry<TKey, TValue>> enumerator =
+                store.GetOrderedEnumerator();
 
             // Write the entries in ascending order.
             numEntries = await driver.WriteEntriesAsync(enumerator, settings, default).ConfigureAwaitLib();
@@ -107,10 +136,7 @@ partial class DefaultKeyValueStore<TKey, TValue>
             }
         }
 
-        Interlocked.Exchange(ref memoryStores, new MemoryStores(newStore));
-        watch.Stop();
-        Logger.LogInformation("Finished persisting memory store with {numEntries} entries in {ms}ms.",
-            numEntries, watch.ElapsedMilliseconds);
+        return numEntries;
     }
 
     private async Task MergeAsync()
