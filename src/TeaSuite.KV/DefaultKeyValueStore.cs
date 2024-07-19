@@ -28,6 +28,7 @@ public partial class DefaultKeyValueStore<TKey, TValue>
     private readonly ILogger<DefaultKeyValueStore<TKey, TValue>> logger;
     private readonly IWriteAheadLog<TKey, TValue> wal;
     private readonly IMemoryKeyValueStoreFactory<TKey, TValue> memoryStoreFactory;
+    private readonly ILockingPolicy lockingPolicy;
     private readonly StoreSettings settings;
     private readonly ISystemClock systemClock;
     private readonly Task pendingMaintenance;
@@ -59,6 +60,10 @@ public partial class DefaultKeyValueStore<TKey, TValue>
     /// The <see cref="IMemoryKeyValueStoreFactory{TKey, TValue}"/> to use to
     /// create new instances of <see cref="IMemoryKeyValueStore{TKey, TValue}"/>.
     /// </param>
+    /// <param name="lockingPolicy">
+    /// The <see cref="ILockingPolicy"/> to use when reading and writing to the
+    /// in-memory key-value store.
+    /// </param>
     /// <param name="segmentManager">
     /// The <see cref="ISegmentManager{TKey, TValue}"/> to use to manage persisted
     /// segments of the store.
@@ -74,6 +79,7 @@ public partial class DefaultKeyValueStore<TKey, TValue>
         ILogger<DefaultKeyValueStore<TKey, TValue>> logger,
         IWriteAheadLog<TKey, TValue> wal,
         IMemoryKeyValueStoreFactory<TKey, TValue> memoryStoreFactory,
+        ILockingPolicy lockingPolicy,
         ISegmentManager<TKey, TValue> segmentManager,
         IOptionsMonitor<StoreOptions<TKey, TValue>> options,
         ISystemClock systemClock)
@@ -82,6 +88,7 @@ public partial class DefaultKeyValueStore<TKey, TValue>
         this.logger = logger;
         this.wal = wal;
         this.memoryStoreFactory = memoryStoreFactory;
+        this.lockingPolicy = lockingPolicy;
         this.settings = options.CurrentValue.Settings;
         this.systemClock = systemClock;
 
@@ -97,23 +104,28 @@ public partial class DefaultKeyValueStore<TKey, TValue>
     {
         StoreEntry<TKey, TValue> entry;
 
-        IMemoryKeyValueStore<TKey, TValue>? oldStore = memoryStores.Old;
-        if (!memoryStores.Current.TryGet(key, out entry))
+        using (lockingPolicy.AcquireReadLock())
         {
+            IMemoryKeyValueStore<TKey, TValue>? oldStore = memoryStores.Old;
+            if (memoryStores.Current.TryGet(key, out entry))
+            {
+                goto EntryFound;
+            }
             // If we're in the middle of flushing the memory store, check the
             // old memory store too, if available.
-            if (null == oldStore || !oldStore.TryGet(key, out entry))
+            else if (null != oldStore && oldStore.TryGet(key, out entry))
             {
-                // We couldn't find the entry in the in-memory stores. It's time
-                // to check the segments.
-                if (!TryGetFromSegments(key, out entry))
-                {
-                    value = default;
-                    return false;
-                }
+                goto EntryFound;
             }
         }
+        // We couldn't find the entry in the in-memory stores. It's time
+        // to check the segments.
+        if (!TryGetFromSegments(key, out entry))
+        {
+            entry = StoreEntry<TKey, TValue>.Delete(key);
+        }
 
+    EntryFound:
         if (entry.IsDeleted)
         {
             value = default;
@@ -236,10 +248,13 @@ public partial class DefaultKeyValueStore<TKey, TValue>
     /// </param>
     private void WriteEntry(StoreEntry<TKey, TValue> entry)
     {
-        if (wal.AnnounceWriteAsync(entry).GetValueTaskResult())
+        using (lockingPolicy.AcquireWriteLock())
         {
-            memoryStores.Current.Set(entry);
-            QueuePersistIfNeeded();
+            if (wal.AnnounceWriteAsync(entry).GetValueTaskResult())
+            {
+                memoryStores.Current.Set(entry);
+                QueuePersistIfNeeded();
+            }
         }
     }
 

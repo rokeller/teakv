@@ -39,6 +39,7 @@ public sealed partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
@@ -58,6 +59,7 @@ public sealed partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
@@ -83,6 +85,7 @@ public sealed partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
@@ -118,6 +121,7 @@ public sealed partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
@@ -152,6 +156,7 @@ public sealed partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
@@ -190,6 +195,7 @@ public sealed partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
@@ -241,6 +247,7 @@ public sealed partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
@@ -328,6 +335,7 @@ public sealed partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
