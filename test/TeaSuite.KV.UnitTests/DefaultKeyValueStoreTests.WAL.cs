@@ -2,6 +2,7 @@ using AutoFixture.Xunit2;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TeaSuite.KV.IO;
+using TeaSuite.KV.Policies;
 
 namespace TeaSuite.KV;
 
@@ -51,6 +52,7 @@ partial class DefaultKeyValueStoreTests
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             mockWal.Object,
             mockMemFactory.Object,
+            NullLockingPolicy.Instance,
             mockSegmentManager.Object,
             mockOptions.Object,
             mockClock.Object);
