@@ -19,10 +19,19 @@ more segments need to be searched for entries that do not exist. Therefore, the
 segments can be merged (aka compacted) so that reads in segments can be made
 faster.
 
-Staring with version 0.3, the Key-Value store also supports the use of a
+Starting with version 0.3, the Key-Value store also supports the use of a
 write-ahead log (WAL) for write operations (`Set` and `Delete`), but the default
-is to not use the WAL (for backwards compatibility). Read more about the use of
+is to not use the WAL (for backward compatibility). Read more about the use of
 a WAL below in [Crash Recovery](#crash-recovery).
+
+Starting with version 0.4, the Key-Value store also supports read/write locking
+for the in-memory store through the use of the `ILockingPolicy` interface. For
+backward compatibility, the default is to use the `NullLockingPolicy` which does
+not do any locking. By registering the `ReaderWriterLockingPolicy` instead for
+the `ILockingPolicy`, you can allow many parallel reads or a single write at
+any given time, so you don't need to worry about locking access to the Key-Value
+store yourself. Read more about the use of a locking policy below in
+[Locking](#locking).
 
 ## Usage Examples
 
@@ -223,6 +232,39 @@ at least as far as the write operations are concerned, because each of them is
 first committed to the write-ahead log before committing the changes to the
 in-memory store. Accordingly, if your application does not need crash recovery,
 you may fare better without the write-ahead log.
+
+### Locking
+
+By default, they Key-Value store does not do any locking for reading and writing
+to the in-memory store. Consumers are expected do to this themselves, based on
+the application's needs.
+
+This behavior can however be changed through the use of the `ILockingPolicy`
+interface, by registering an implementation different from the default
+`NullLockingPolicy`. The `ReaderWriterLockingPolicy` that ships with the library
+for example uses a `ReaderWriterLockSlim` that allows multiple parallel reads
+or a single write at any given time.
+
+In most setups, it can be used simply by registering `ReaderWriterLockingPolicy`
+as the implementation to use for `ILockingPolicy`:
+
+```csharp
+services
+    .AddKeyValueStore<int, string>()
+    // Configuration for the store
+    ;
+// Use the ReaderWriterLockingPolicy for in-memory store locking.
+services.AddTransient<ILockingPolicy, ReaderWriterLockingPolicy>();
+```
+
+By default, Key-Value stores are registered as singletons, which means that even
+if your process embeds multiple different Key-Value stores, with a _transient_
+registration of `ReaderWriterLockingPolicy` for the `ILockingPolicy` each
+Key-Value store singleton gets its own instance of the locking policy. If it was
+instead registered as a _singleton_, all embedded Key-Value stores would share
+the same locking policy instance, and therefore reading would be allowed in
+parallel on all stores, but only a single store could ever accept a write at any
+given moment.
 
 ## More Examples
 
