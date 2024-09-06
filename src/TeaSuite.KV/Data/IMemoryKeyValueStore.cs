@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace TeaSuite.KV.Data;
 
 /// <summary>
-/// Defines the interface for an in-memory Key/Value store.
+/// Defines the interface for an in-memory Key-Value store.
 /// </summary>
 /// <typeparam name="TKey">
 /// Type type of the keys used for entries of the store.
@@ -20,7 +20,8 @@ public interface IMemoryKeyValueStore<TKey, TValue> where TKey : IComparable<TKe
     int Count { get; }
 
     /// <summary>
-    /// Tries to get the <see cref="StoreEntry{TKey, TValue}"/> for the given <paramref name="key"/>.
+    /// Tries to get the <see cref="StoreEntry{TKey, TValue}"/> for the given
+    /// <paramref name="key"/>.
     /// </summary>
     /// <param name="key">
     /// The key for which to find the entry.
@@ -42,12 +43,28 @@ public interface IMemoryKeyValueStore<TKey, TValue> where TKey : IComparable<TKe
     void Set(StoreEntry<TKey, TValue> entry);
 
     /// <summary>
-    /// Gets an <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/> that represents all the current
-    /// entries of the store in ascending order.
+    /// Gets an <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/>
+    /// that represents all the current entries of the store in ascending order.
     /// </summary>
     /// <returns>
-    /// An <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/> that can be used to enumerate all the
-    /// entries of the store in ascending order.
+    /// An <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/>
+    /// that can be used to enumerate all the entries of the store in ascending
+    /// order.
     /// </returns>
     IEnumerator<StoreEntry<TKey, TValue>> GetOrderedEnumerator();
+
+    /// <summary>
+    /// Gets an <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/>
+    /// that represents all the current entries in the given <paramref name="range"/>
+    /// of the store in ascending order.
+    /// </summary>
+    /// <param name="range">
+    /// The <see cref="Range{T}"/> of keys to enumerate.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IEnumerator{T}"/> of <see cref="StoreEntry{TKey, TValue}"/>
+    /// that can be used to enumerate all the entries in the given
+    /// <paramref name="range"/> of the store in ascending order.
+    /// </returns>
+    IEnumerator<StoreEntry<TKey, TValue>> GetOrderedEnumerator(Range<TKey> range);
 }

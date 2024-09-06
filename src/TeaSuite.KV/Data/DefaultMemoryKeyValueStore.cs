@@ -33,12 +33,23 @@ public sealed class DefaultMemoryKeyValueStore<TKey, TValue> : IMemoryKeyValueSt
     #region Fields
 
     private readonly AvlTree<StoreEntry<TKey, TValue>> tree =
-        new AvlTree<StoreEntry<TKey, TValue>>(StoreEntry<TKey, TValue>.KeyComparer);
+        new(StoreEntry<TKey, TValue>.KeyComparer);
 
     /// <summary>
-    /// Holds the current state of the tree.
+    /// Holds a count of ongoing read-only operations (like enumerating items
+    /// in this in-memory store instance) that disallow any concurrent write
+    /// operations to the store.
     /// </summary>
-    private long state = StateReadWrite;
+    /// <remarks>
+    /// Note that this provides at <em>best</em> a simplistic precaution against
+    /// concurrent writes while an entry enumeration is ongoing. It is expected
+    /// that the Key-Value store that uses this in-memory store provides a higher
+    /// level mechanism (such as a reader-writer locking mechanism or even
+    /// mutually exclusive access for operations) to properly protect against
+    /// memory corruption. The specific strategy however often depends on the
+    /// specific application so is not enforced here.
+    /// </remarks>
+    private long readOnlyOpCount = 0;
 
     #endregion
 
@@ -54,11 +65,13 @@ public sealed class DefaultMemoryKeyValueStore<TKey, TValue> : IMemoryKeyValueSt
     /// <inheritdoc/>
     public void Set(StoreEntry<TKey, TValue> entry)
     {
-        // If enumeration of items in the tree has begun, we really shouldn't make any changes to the tree anymore.
-        long curState = Interlocked.Read(ref state);
-        if (curState == StateReadOnly)
+        // If any read-only operations (such as enumerating entries) are ongoing,
+        // we cannot allow any write operations at this point.
+        long refCount = Interlocked.Read(ref readOnlyOpCount);
+        if (refCount > 0)
         {
-            throw new InvalidOperationException("Cannot write to the store: the store is read-only.");
+            throw new InvalidOperationException(
+                "Cannot write to the store: the store is read-only.");
         }
 
         tree.Upsert(entry);
@@ -66,15 +79,46 @@ public sealed class DefaultMemoryKeyValueStore<TKey, TValue> : IMemoryKeyValueSt
 
     /// <inheritdoc/>
     public IEnumerator<StoreEntry<TKey, TValue>> GetOrderedEnumerator()
+        => GetOrderedEnumerator(Range<TKey>.Unbounded);
+
+    /// <inheritdoc/>
+    public IEnumerator<StoreEntry<TKey, TValue>> GetOrderedEnumerator(
+        Range<TKey> range)
     {
-        // Enumeration of items in the tree requires the tree to be made read-only, otherwise enumeration would not be
-        // stable.
-        long oldState = Interlocked.CompareExchange(ref state, StateReadOnly, StateReadWrite);
-        if (oldState == StateReadOnly)
+        // Increment the read-only operation count to disallow write operations
+        // while the enumerator is in use.
+        Interlocked.Increment(ref readOnlyOpCount);
+
+        IEnumerator<StoreEntry<TKey, TValue>> result = tree.GetInOrderEnumerator();
+
+        if (range.IsBounded)
         {
-            throw new InvalidOperationException("An ordered enumerator has already been requested before.");
+            if (range.HasStart)
+            {
+                result = new LowerBoundEnumerator<StoreEntry<TKey, TValue>>(
+                    result, StoreEntry<TKey, TValue>.Sentinel(range.Start));
+            }
+
+            if (range.HasEnd)
+            {
+                result = new UpperBoundEnumerator<StoreEntry<TKey, TValue>>(
+                    result, StoreEntry<TKey, TValue>.Sentinel(range.End));
+            }
         }
 
-        return tree.GetInOrderEnumerator();
+        result = new GuardingEnumerator<StoreEntry<TKey, TValue>>(
+            new ReadRefCountGuard(this), result);
+
+        return result;
+    }
+
+    private readonly record struct ReadRefCountGuard(
+        DefaultMemoryKeyValueStore<TKey, TValue> Store
+        ) : IDisposable
+    {
+        public void Dispose()
+        {
+            Interlocked.Decrement(ref Store.readOnlyOpCount);
+        }
     }
 }
