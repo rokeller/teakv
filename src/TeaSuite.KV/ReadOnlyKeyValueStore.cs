@@ -58,7 +58,7 @@ public class ReadOnlyKeyValueStore<TKey, TValue> :
     /// <inheritdoc/>
     public IEnumerator<StoreEntry<TKey, TValue>> GetEntriesEnumerator()
     {
-        return GetEntriesEnumerator(Range<TKey>.Unbounded());
+        return GetEntriesEnumerator(Range<TKey>.Unbounded);
     }
 
     /// <inheritdoc/>
@@ -93,7 +93,7 @@ public class ReadOnlyKeyValueStore<TKey, TValue> :
     /// <inheritdoc/>
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-        return GetEnumerator(Range<TKey>.Unbounded());
+        return GetEnumerator(Range<TKey>.Unbounded);
     }
 
     /// <inheritdoc/>
