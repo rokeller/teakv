@@ -38,7 +38,7 @@ partial class DriverTests
 
         Assert.NotNull(driver);
         InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
-            () => driver.Overlaps(Range<int>.Unbounded()));
+            () => driver.Overlaps(Range<int>.Unbounded));
 
         Assert.Equal("Cannot read in a non-readable segment.", ex.Message);
     }
@@ -99,7 +99,7 @@ partial class DriverTests
         mockSegmentReader.Setup(r => r.DisposeAsync()).Returns(new ValueTask());
 
         InitEmptyReadOnlyDriver();
-        Range<int> range = Range<int>.Unbounded();
+        Range<int> range = Range<int>.Unbounded;
 
         Assert.NotNull(driver);
         driver.Dispose();
