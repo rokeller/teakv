@@ -104,7 +104,7 @@ partial class FileWriteAheadLog<TKey, TValue>
                 case WalEntryTag.Timestamp:
                 case WalEntryTag.Close:
                     StreamExtensions.Read(wal, out long value);
-                    entry = new WalEntry(tag, value, null);
+                    entry = new(tag, value, null);
                     return true;
 
                 case WalEntryTag.Write:
@@ -118,9 +118,9 @@ partial class FileWriteAheadLog<TKey, TValue>
                     else
                     {
                         TValue val = valueFormatter.ReadAsync(wal, default).GetValueTaskResult();
-                        storeEntry = new StoreEntry<TKey, TValue>(key, val);
+                        storeEntry = new(key, val);
                     }
-                    entry = new WalEntry(tag, null, storeEntry);
+                    entry = new(tag, null, storeEntry);
                     return true;
 
                 default:

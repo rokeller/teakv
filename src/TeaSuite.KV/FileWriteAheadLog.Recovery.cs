@@ -75,14 +75,14 @@ partial class FileWriteAheadLog<TKey, TValue>
         {
             // Rename the file so as to not cause issues with normal operation
             // of the WAL.
-            return new Recovery(MoveWalFile(closedWal), OpenWal);
+            return new(MoveWalFile(closedWal), OpenWal);
         }
 
         internal Recovery AddOpenWal(FileInfo openWal)
         {
             // Rename the file so as to not cause issues with normal operation
             // of the WAL.
-            return new Recovery(ClosedWal, MoveWalFile(openWal));
+            return new(ClosedWal, MoveWalFile(openWal));
         }
 
         internal FileStream OpenClosedWal()
@@ -112,7 +112,7 @@ partial class FileWriteAheadLog<TKey, TValue>
 
         private static FileInfo MoveWalFile(FileInfo walFile)
         {
-            FileInfo target = new FileInfo(walFile.FullName + WalUnderRecoverySuffix);
+            FileInfo target = new(walFile.FullName + WalUnderRecoverySuffix);
             if (target.Exists)
             {
                 target.Delete();
