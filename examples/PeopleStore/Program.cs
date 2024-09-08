@@ -7,8 +7,8 @@ namespace PeopleStore;
 
 internal class Program
 {
-    private static readonly HashSet<string> ValidCommands = new HashSet<string>(
-        new string[] { "get", "set", "delete", "list", "compact", },
+    private static readonly HashSet<string> ValidCommands = new(
+        ["get", "set", "delete", "list", "compact",],
         StringComparer.OrdinalIgnoreCase
     );
 
@@ -46,6 +46,7 @@ internal class Program
 
             .AddKeyValueStore<string, Person>()
             .AddFileStorage((options) => options.SegmentsDirectoryPath = "people")
+            .AddWriteAheadLog((options) => { })
             ;
     }
 

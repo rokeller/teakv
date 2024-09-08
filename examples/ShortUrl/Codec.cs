@@ -15,7 +15,7 @@ internal static class Codec
             return Alphabet[0].ToString();
         }
 
-        StringBuilder sb = new StringBuilder(capacity: 16);
+        StringBuilder sb = new(capacity: 16);
 
         while (l > 0)
         {

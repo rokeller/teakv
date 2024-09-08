@@ -43,12 +43,16 @@ partial class PeopleCommand
 
         public Task RunAsync()
         {
-            Debug.Assert(null != settings.ID, "The ID of the person to set must not be null.");
-            Debug.Assert(null != settings.FirstName, "The FirstName of the person to set must not be null.");
-            Debug.Assert(null != settings.LastName, "The LastName of the person to set must not be null.");
-            Debug.Assert(settings.Age.HasValue, "The Age of the person to set must not be null.");
+            Debug.Assert(null != settings.ID,
+                "The ID of the person to set must not be null.");
+            Debug.Assert(null != settings.FirstName,
+                "The FirstName of the person to set must not be null.");
+            Debug.Assert(null != settings.LastName,
+                "The LastName of the person to set must not be null.");
+            Debug.Assert(settings.Age.HasValue,
+                "The Age of the person to set must not be null.");
 
-            Person person = new Person(
+            Person person = new(
                 settings.FirstName,
                 settings.LastName,
                 settings.Age.Value);
