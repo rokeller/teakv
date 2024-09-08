@@ -104,7 +104,7 @@ partial class DefaultKeyValueStoreTests
         Type enumeratorTypeGeneric = storeType.GetNestedType(
             "InMemoryEnumerator", BindingFlags.NonPublic)!;
         Type enumeratorType = enumeratorTypeGeneric.MakeGenericType(typeof(int), typeof(int));
-        System.Reflection.PropertyInfo readLockProp = enumeratorType.GetProperty("ReadLock")!;
+        PropertyInfo readLockProp = enumeratorType.GetProperty("ReadLock")!;
 
         Mock<IEnumerator<StoreEntry<int, int>>> mockInner = new(MockBehavior.Strict);
         IEnumerator<StoreEntry<int, int>> enumerator =
@@ -169,7 +169,8 @@ partial class DefaultKeyValueStoreTests
 
 #if NET6_0
         IEnumerator<StoreEntry<int, int>> result =
-            (IEnumerator<StoreEntry<int, int>>)method.Invoke(store, new object[] {enumerators,})!;
+            (IEnumerator<StoreEntry<int, int>>)method.Invoke(
+                store, new object[] { enumerators, })!;
 #else
         IEnumerator<StoreEntry<int, int>> result =
             (IEnumerator<StoreEntry<int, int>>)method.Invoke(store, [enumerators,])!;
