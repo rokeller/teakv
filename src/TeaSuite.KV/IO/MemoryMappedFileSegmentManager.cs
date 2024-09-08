@@ -85,15 +85,17 @@ public sealed partial class MemoryMappedFileSegmentManager<TKey, TValue> :
             long? readWindow,
             CancellationToken cancellationToken)
         {
-            return new ValueTask<Stream>(
-                dataFile.CreateViewStream(position, readWindow ?? 0, MemoryMappedFileAccess.Read));
+            return new(
+                dataFile.CreateViewStream(
+                    position, readWindow ?? 0, MemoryMappedFileAccess.Read));
         }
 
         /// <inheritdoc/>
         public ValueTask<Stream> OpenIndexForReadAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<Stream>(
-                File.Open(indexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return new(
+                File.Open(
+                    indexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
     }
 }

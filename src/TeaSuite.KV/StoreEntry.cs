@@ -3,7 +3,7 @@ using System;
 namespace TeaSuite.KV;
 
 /// <summary>
-/// Defines an entry in the Key/Value Store.
+/// Defines an entry in the Key-Value store.
 /// </summary>
 /// <typeparam name="TKey">
 /// The type of the key used by the entry.
@@ -56,7 +56,7 @@ public readonly partial struct StoreEntry<TKey, TValue> :
     /// </returns>
     public static StoreEntry<TKey, TValue> Delete(TKey key)
     {
-        return new StoreEntry<TKey, TValue>(key);
+        return new(key);
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public readonly partial struct StoreEntry<TKey, TValue> :
     {
         // Currently, entry comparison is done purely on keys, which is why an
         // entry that's marked as deleted is a good-enough sentinel.
-        return new StoreEntry<TKey, TValue>(key);
+        return new(key);
     }
 
     /// <inheritdoc/>

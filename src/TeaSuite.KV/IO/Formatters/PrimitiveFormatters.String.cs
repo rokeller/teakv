@@ -16,12 +16,14 @@ partial class PrimitiveFormatters
     public readonly struct StringFormatter : IFormatter<string>
     {
         /// <summary>
-        /// The mamximum number of bytes to allocate on the stack for the bytes of a string.
+        /// The mamximum number of bytes to allocate on the stack for the bytes
+        /// of a string.
         /// </summary>
         private const int MaxStackAlloc = 1024;
 
         /// <summary>
-        /// The <see cref="Encoding"/> to use for string serialization and deserialization.
+        /// The <see cref="Encoding"/> to use for string serialization and
+        /// deserialization.
         /// </summary>
         private readonly Encoding encoding = Encoding.UTF8;
 
@@ -31,7 +33,9 @@ partial class PrimitiveFormatters
         public StringFormatter() { }
 
         /// <inheritdoc/>
-        public ValueTask<string> ReadAsync(Stream source, CancellationToken cancellationToken)
+        public ValueTask<string> ReadAsync(
+            Stream source,
+            CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             source.Fill(buffer);
@@ -46,12 +50,15 @@ partial class PrimitiveFormatters
             }
             else
             {
-                return new(ReadWithPoolAsync(source, byteLength, cancellationToken));
+                return new(
+                    ReadWithPoolAsync(source, byteLength, cancellationToken));
             }
         }
 
         /// <inheritdoc/>
-        public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
+        public ValueTask SkipReadAsync(
+            Stream source,
+            CancellationToken cancellationToken)
         {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             source.Fill(buffer);
@@ -61,7 +68,8 @@ partial class PrimitiveFormatters
 
             while (remaining > 0)
             {
-                Span<byte> localBuffer = buffer.Slice(0, Math.Min(remaining, MaxStackAlloc));
+                Span<byte> localBuffer = buffer.Slice(
+                    0, Math.Min(remaining, MaxStackAlloc));
                 source.Fill(localBuffer);
                 remaining -= localBuffer.Length;
             }
@@ -70,13 +78,17 @@ partial class PrimitiveFormatters
         }
 
         /// <inheritdoc/>
-        public ValueTask WriteAsync(string value, Stream destination, CancellationToken cancellationToken)
+        public ValueTask WriteAsync(
+            string value,
+            Stream destination,
+            CancellationToken cancellationToken)
         {
             int byteLength = encoding.GetByteCount(value);
 
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             bool successful = BitConverter.TryWriteBytes(buffer, byteLength);
-            Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
+            Debug.Assert(successful,
+                "Writing the value to the byte buffer must have been successful.");
 
             destination.Write(buffer);
 
@@ -94,7 +106,7 @@ partial class PrimitiveFormatters
                 try
                 {
                     encoding.GetBytes(value, 0, value.Length, byteBuffer, 0);
-                    return new ValueTask(destination.WriteAsync(byteBuffer, 0, byteLength));
+                    return new(destination.WriteAsync(byteBuffer, 0, byteLength));
                 }
                 finally
                 {
@@ -104,7 +116,8 @@ partial class PrimitiveFormatters
         }
 
         /// <summary>
-        /// Reads a string with the given <paramref name="length"/> from the <paramref name="source"/> and stores the
+        /// Reads a string with the given <paramref name="length"/> from the
+        /// <paramref name="source"/> and stores the
         /// bytes in a shared byte array pool.
         /// </summary>
         /// <param name="source">
@@ -114,15 +127,20 @@ partial class PrimitiveFormatters
         /// The length of the string to read, in bytes.
         /// </param>
         /// <param name="cancellationToken">
-        /// A <see cref="CancellationToken"/> value that tracks cancellation of the operation.
+        /// A <see cref="CancellationToken"/> value that tracks cancellation of
+        /// the operation.
         /// </param>
         /// <returns>
-        /// A <see cref="Task"/> which results in the string that was read on success.
+        /// A <see cref="Task"/> which results in the string that was read on
+        /// success.
         /// </returns>
-        private async Task<string> ReadWithPoolAsync(Stream source, int length, CancellationToken cancellationToken)
+        private async Task<string> ReadWithPoolAsync(
+            Stream source,
+            int length,
+            CancellationToken cancellationToken)
         {
             byte[] byteBuffer = ArrayPool<byte>.Shared.Rent(length);
-            Memory<byte> memoryBuffer = new Memory<byte>(byteBuffer, 0, length);
+            Memory<byte> memoryBuffer = new(byteBuffer, 0, length);
             try
             {
                 await source.FillAsync(memoryBuffer, cancellationToken).ConfigureAwaitLib();

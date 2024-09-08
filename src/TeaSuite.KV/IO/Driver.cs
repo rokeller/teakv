@@ -12,7 +12,7 @@ using TeaSuite.KV.Policies;
 namespace TeaSuite.KV.IO;
 
 /// <summary>
-/// Represents a driver for Key/Value store segments.
+/// Represents a driver for Key-Value store segments.
 /// </summary>
 /// <typeparam name="TKey">
 /// The type of the keys used in the store.
@@ -74,7 +74,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         // Remember the first and last entry of the segment so we can skip all lookups not falling into the range.
         FirstIndexEntry = index[0];
         LastIndexEntry = index[index.Count - 1];
-        Index = new ArraySegment<IndexEntry>(pool, 0, index.Count);
+        Index = new(pool, 0, index.Count);
     }
 
     /// <summary>
@@ -198,10 +198,12 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         long? curDataPos = null;
         StoreEntry<TKey, TValue>? lastEntry = null;
 
-        await using Stream indexStream = await writer.OpenIndexForWriteAsync(cancellationToken).ConfigureAwaitLib();
-        await using Stream dataStream = await writer.OpenDataForWriteAsync(cancellationToken).ConfigureAwaitLib();
-        await using WriteContext indexContext = new WriteContext(indexStream);
-        await using WriteContext dataContext = new WriteContext(dataStream);
+        await using Stream indexStream = await writer
+            .OpenIndexForWriteAsync(cancellationToken).ConfigureAwaitLib();
+        await using Stream dataStream = await writer
+            .OpenDataForWriteAsync(cancellationToken).ConfigureAwaitLib();
+        await using WriteContext indexContext = new(indexStream);
+        await using WriteContext dataContext = new(dataStream);
 
         WriteSegmentMetadata(indexContext, SegmentMetadata.New());
 
@@ -223,7 +225,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
 
                 pendingIndexWrite = WriteIndexEntryAsync(
                     indexContext,
-                    new IndexEntry(curIndexId++, entry.Key, curDataPos.Value),
+                    new(curIndexId++, entry.Key, curDataPos.Value),
                     cancellationToken);
 
                 // Remember the index and position (in the data stream) of this entry for future evaluations of the
@@ -244,7 +246,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         if (lastEntry.HasValue && lastIndexedEntryIndex < curEntryIndex - 1)
         {
             logger.LogDebug("Indexing last entry at position {offset}.", curDataPos!.Value);
-            IndexEntry indexEntry = new IndexEntry(curIndexId, lastEntry.Value.Key, curDataPos!.Value);
+            IndexEntry indexEntry = new(curIndexId, lastEntry.Value.Key, curDataPos!.Value);
             await WriteIndexEntryAsync(indexContext, indexEntry, cancellationToken).ConfigureAwaitLib();
         }
 
@@ -331,11 +333,11 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     {
         Debug.Assert(reader != null, "The reader must not be null.");
         using Stream stream = reader.OpenIndexForReadAsync(cancellationToken).GetValueTaskResult();
-        using ReadContext context = new ReadContext(stream);
+        using ReadContext context = new(stream);
         int indexId = 0;
 
         metadata = ReadSegmentMetadata(context);
-        List<IndexEntry> entries = new List<IndexEntry>();
+        List<IndexEntry> entries = new();
 
         while (true)
         {
@@ -458,7 +460,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         IndexEntry? nextEntry = GetNextIndexEntry(startEntry);
         long? readWindow = nextEntry?.Position - startEntry.Position;
 
-        await using ReadContext context = new ReadContext(
+        await using ReadContext context = new(
             await reader.OpenDataForReadAsync(startEntry.Position, readWindow, cancellationToken).ConfigureAwaitLib());
 
         StoreEntry<TKey, TValue>? entry = await SeekEntryAsync(context, key, cancellationToken).ConfigureAwaitLib();
@@ -546,7 +548,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
             {
                 TValue value = await formatter.ReadValueAsync(context.Stream, cancellationToken).ConfigureAwaitLib();
 
-                return new StoreEntry<TKey, TValue>(key, value);
+                return new(key, value);
             }
             else
             {

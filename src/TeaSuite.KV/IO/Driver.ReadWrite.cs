@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +39,7 @@ partial class Driver<TKey, TValue>
 
         StreamExtensions.Read(context.Stream, out long ticks);
 
-        return new SegmentMetadata(flags, version, new DateTime(ticks, DateTimeKind.Utc));
+        return new(flags, version, new(ticks, DateTimeKind.Utc));
     }
 
     /// <summary>
@@ -91,7 +90,7 @@ partial class Driver<TKey, TValue>
         }
         StreamExtensions.Read(context.Stream, out long position);
 
-        return new IndexEntry(indexId, key, position);
+        return new(indexId, key, position);
     }
 
     /// <summary>

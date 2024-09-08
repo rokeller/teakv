@@ -23,7 +23,8 @@ partial class FileSegmentManager<TKey, TValue>
         /// <inheritdoc/>
         public ValueTask<Stream> OpenIndexForReadAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<Stream>(File.Open(indexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return new(File.Open(
+                indexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
 
         /// <inheritdoc/>
@@ -32,10 +33,11 @@ partial class FileSegmentManager<TKey, TValue>
             long? readWindow,
             CancellationToken cancellationToken)
         {
-            Stream stream = File.Open(dataFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            Stream stream = File.Open(
+                dataFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             stream.Seek(position, SeekOrigin.Begin);
 
-            return new ValueTask<Stream>(stream);
+            return new(stream);
         }
 
         /// <inheritdoc/>
