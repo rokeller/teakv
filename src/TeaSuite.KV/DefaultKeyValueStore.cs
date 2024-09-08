@@ -11,15 +11,15 @@ using TeaSuite.KV.Policies;
 namespace TeaSuite.KV;
 
 /// <summary>
-/// Default implementation of the Key/Value store. Uses the currently configured
+/// Default implementation of the Key-Value store. Uses the currently configured
 /// <see cref="IMemoryKeyValueStoreFactory{TKey, TValue}"/> to create in-memory
 /// stores for write operations.
 /// </summary>
 /// <typeparam name="TKey">
-/// The type of the keys used for entries in the Key/Value store.
+/// The type of the keys used for entries in the Key-Value store.
 /// </typeparam>
 /// <typeparam name="TValue">
-/// The type of the values used for entries in the Key/Value store.
+/// The type of the values used for entries in the Key-Value store.
 /// </typeparam>
 public partial class DefaultKeyValueStore<TKey, TValue>
     : BaseKeyValueStore<TKey, TValue>, IAsyncDisposable, IDisposable
@@ -32,7 +32,7 @@ public partial class DefaultKeyValueStore<TKey, TValue>
     private readonly StoreSettings settings;
     private readonly ISystemClock systemClock;
     private readonly Task pendingMaintenance;
-    private readonly CancellationTokenSource storeOpen = new CancellationTokenSource();
+    private readonly CancellationTokenSource storeOpen = new();
     private bool isDisposed;
 
     /// <summary>
@@ -94,7 +94,7 @@ public partial class DefaultKeyValueStore<TKey, TValue>
 
         // Start the maintenance worker.
         pendingMaintenance = RunMaintenanceAsync();
-        memoryStores = new MemoryStores(memoryStoreFactory.Create());
+        memoryStores = new(memoryStoreFactory.Create());
         wal.Start(Recover);
         lastPersistQueued = systemClock.UtcNow;
     }
@@ -141,7 +141,7 @@ public partial class DefaultKeyValueStore<TKey, TValue>
     /// <inheritdoc/>
     public override void Set(TKey key, TValue value)
     {
-        WriteEntry(new StoreEntry<TKey, TValue>(key, value));
+        WriteEntry(new(key, value));
     }
 
     /// <inheritdoc/>

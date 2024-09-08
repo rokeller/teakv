@@ -3,17 +3,18 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using TeaSuite.KV.IO.Formatters;
+using static TeaSuite.KV.StoreUtils;
 
 namespace TeaSuite.KV;
 
 public sealed partial class FileWriteAheadLogTests
 {
-    private readonly string optionsName = StoreUtils.GetOptionsName<int, string>();
-    private readonly FileWriteAheadLogSettings walSettings = new FileWriteAheadLogSettings();
+    private readonly string optionsName = GetOptionsName<int, string>();
+    private readonly FileWriteAheadLogSettings walSettings = new();
     private readonly Mock<IOptionsMonitor<FileWriteAheadLogSettings>> mockSettings =
-        new Mock<IOptionsMonitor<FileWriteAheadLogSettings>>(MockBehavior.Strict);
-    private readonly Mock<ISystemClock> mockClock = new Mock<ISystemClock>(MockBehavior.Strict);
-    private readonly DateTimeOffset utcNow = new DateTimeOffset(2024, 6, 23, 12, 14, 15, 0, TimeSpan.Zero);
+        new(MockBehavior.Strict);
+    private readonly Mock<ISystemClock> mockClock = new(MockBehavior.Strict);
+    private readonly DateTimeOffset utcNow = new(2024, 6, 23, 12, 14, 15, 0, TimeSpan.Zero);
     private readonly FileWriteAheadLog<int, string> wal;
 
     public FileWriteAheadLogTests()
@@ -25,7 +26,7 @@ public sealed partial class FileWriteAheadLogTests
         walSettings.LogDirectoryPath = Path.Combine(
             Path.GetTempPath(), "FileWriteAheadLogTests", Guid.NewGuid().ToString("N"));
 
-        wal = new FileWriteAheadLog<int, string>(
+        wal = new(
             NullLogger<FileWriteAheadLog<int, string>>.Instance,
             new PrimitiveFormatters.Int32Formatter(),
             new PrimitiveFormatters.StringFormatter(),
@@ -75,7 +76,7 @@ public sealed partial class FileWriteAheadLogTests
         using (wal)
         {
             wal.Start(null);
-            bool res = await wal.AnnounceWriteAsync(new StoreEntry<int, string>(key, val));
+            bool res = await wal.AnnounceWriteAsync(new(key, val));
             Assert.True(res);
         }
 
@@ -97,7 +98,8 @@ public sealed partial class FileWriteAheadLogTests
         using (wal)
         {
             wal.Start(null);
-            bool res = await wal.AnnounceWriteAsync(StoreEntry<int, string>.Delete(key));
+            bool res = await wal.AnnounceWriteAsync(
+                StoreEntry<int, string>.Delete(key));
             Assert.True(res);
         }
 
@@ -120,8 +122,11 @@ public sealed partial class FileWriteAheadLogTests
         {
             InvalidOperationException ex =
                 await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await wal.AnnounceWriteAsync(StoreEntry<int, string>.Delete(key)));
-            Assert.Equal("Start must be called before the first write operation.", ex.Message);
+                    async () => await wal.AnnounceWriteAsync(
+                        StoreEntry<int, string>.Delete(key)));
+            Assert.Equal(
+                "Start must be called before the first write operation.",
+                ex.Message);
         }
     }
 
@@ -158,7 +163,8 @@ public sealed partial class FileWriteAheadLogTests
     [Fact]
     public async Task CompleteTransitionAsyncDeletesClosedWal()
     {
-        string closedFilePath = Path.Combine(walSettings.LogDirectoryPath, ".wal.closed");
+        string closedFilePath = Path.Combine(
+            walSettings.LogDirectoryPath, ".wal.closed");
         using (File.Create(closedFilePath))
         {
         }
@@ -177,7 +183,8 @@ public sealed partial class FileWriteAheadLogTests
     [Fact]
     public void ShutdownDeletesWal()
     {
-        string openFilePath = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
+        string openFilePath = Path.Combine(
+            walSettings.LogDirectoryPath, ".wal.open");
         using (wal)
         {
             wal.Start(null);

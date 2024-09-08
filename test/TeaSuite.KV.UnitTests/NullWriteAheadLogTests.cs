@@ -17,7 +17,7 @@ public sealed class NullWriteAheadLogTests
     [Theory, AutoData]
     public async Task AnnounceWriteAsyncAlwaysReturnsTrue(int key, int val)
     {
-        Assert.True(await wal.AnnounceWriteAsync(new StoreEntry<int, int>(key, val)));
+        Assert.True(await wal.AnnounceWriteAsync(new(key, val)));
     }
 
     [Fact]

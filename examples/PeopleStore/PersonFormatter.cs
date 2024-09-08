@@ -19,7 +19,7 @@ internal readonly struct PersonFormatter : IFormatter<Person>
         string lastName = await stringFormatter.ReadAsync(source, cancellationToken);
         int age = await intFormatter.ReadAsync(source, cancellationToken);
 
-        return new Person()
+        return new()
         {
             FirstName = firstName,
             LastName = lastName,

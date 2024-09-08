@@ -13,7 +13,7 @@ namespace ShortUrl.Controllers;
 [Route("api")]
 public sealed class ApiController : ControllerBase
 {
-    private static readonly DateTime ServiceEpoch = new DateTime(
+    private static readonly DateTime ServiceEpoch = new(
         2023, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc);
     private static ulong seqId = 0;
     private readonly IKeyValueStore<ulong, string> store;
@@ -64,7 +64,6 @@ public sealed class ApiController : ControllerBase
 
     [HttpGet("all")]
     public IActionResult GetAll(
-        [FromServices] IReadOnlyKeyValueStore<ulong, string> store,
         [FromServices] ILogger<ApiController> logger,
         [FromQuery] int size = 100,
         [FromQuery] string? from = null,
@@ -124,7 +123,7 @@ public sealed class ApiController : ControllerBase
         {
             while (enumerator.MoveNext())
             {
-                yield return new KeyValuePair<string, string>(
+                yield return new(
                     Codec.Encode(enumerator.Current.Key),
                     enumerator.Current.Value
                 );

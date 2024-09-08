@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using TeaSuite.KV.IO.Formatters;
+using TeaSuite.KV.Policies;
 
 namespace TeaSuite.KV;
 
@@ -25,11 +26,13 @@ public static class DependencyInjectionExtensions
     /// <returns>
     /// The input <see cref="IServiceCollection"/>.
     /// </returns>
-    public static StoreBuilder<TKey, TValue> AddReadOnlyKeyValueStore<TKey, TValue>(this IServiceCollection services)
+    public static StoreBuilder<TKey, TValue> AddReadOnlyKeyValueStore<TKey, TValue>(
+        this IServiceCollection services)
         where TKey : IComparable<TKey>
     {
-        return new StoreBuilder<TKey, TValue>(services
-            .AddSingleton<IReadOnlyKeyValueStore<TKey, TValue>, ReadOnlyKeyValueStore<TKey, TValue>>()
+        return new(services
+            .AddSingleton<IReadOnlyKeyValueStore<TKey, TValue>,
+                          ReadOnlyKeyValueStore<TKey, TValue>>()
             .AddDefaultFormatters()
             .AddSystemClock()
         );
@@ -50,18 +53,22 @@ public static class DependencyInjectionExtensions
     /// <returns>
     /// The input <see cref="IServiceCollection"/>.
     /// </returns>
-    public static StoreBuilder<TKey, TValue> AddKeyValueStore<TKey, TValue>(this IServiceCollection services)
+    public static StoreBuilder<TKey, TValue> AddKeyValueStore<TKey, TValue>(
+        this IServiceCollection services)
         where TKey : IComparable<TKey>
     {
-        return new StoreBuilder<TKey, TValue>(services
-            .AddSingleton<IKeyValueStore<TKey, TValue>, DefaultKeyValueStore<TKey, TValue>>()
+        return new(services
+            .AddSingleton<IKeyValueStore<TKey, TValue>,
+                          DefaultKeyValueStore<TKey, TValue>>()
+            .AddTransient<ILockingPolicy, NullLockingPolicy>()
             .AddDefaultFormatters()
             .AddSystemClock()
         );
     }
 
     /// <summary>
-    /// Adds default formatters for <see cref="IEntryFormatter{TKey, TValue}"/> and <see cref="IFormatter{T}"/> for
+    /// Adds default formatters for <see cref="IEntryFormatter{TKey, TValue}"/>
+    /// and <see cref="IFormatter{T}"/> for
     /// primitive types.
     /// </summary>
     /// <param name="services">
@@ -70,15 +77,18 @@ public static class DependencyInjectionExtensions
     /// <returns>
     /// The input <see cref="IServiceCollection"/>.
     /// </returns>
-    public static IServiceCollection AddDefaultFormatters(this IServiceCollection services)
+    public static IServiceCollection AddDefaultFormatters(
+        this IServiceCollection services)
     {
-        services.TryAddTransient(typeof(IEntryFormatter<,>), typeof(DefaultEntryFormatter<,>));
+        services.TryAddTransient(
+            typeof(IEntryFormatter<,>), typeof(DefaultEntryFormatter<,>));
 
         return services.AddPrimitiveFormatters();
     }
 
     /// <summary>
-    /// Adds <typeparamref name="TFormatterImpl"/> as a formatter implementation for <see cref="IFormatter{T}"/>.
+    /// Adds <typeparamref name="TFormatterImpl"/> as a formatter implementation
+    /// for <see cref="IFormatter{T}"/>.
     /// </summary>
     /// <param name="services">
     /// The <see cref="IServiceCollection"/> in which to register services.
@@ -92,7 +102,8 @@ public static class DependencyInjectionExtensions
     /// <returns>
     /// The input <see cref="IServiceCollection"/>.
     /// </returns>
-    public static IServiceCollection AddFormatter<T, TFormatterImpl>(this IServiceCollection services)
+    public static IServiceCollection AddFormatter<T, TFormatterImpl>(
+        this IServiceCollection services)
         where TFormatterImpl : IFormatter<T>
     {
         return services.AddTransient(typeof(IFormatter<T>), typeof(TFormatterImpl));

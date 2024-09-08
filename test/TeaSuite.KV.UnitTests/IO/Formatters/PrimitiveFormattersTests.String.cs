@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using static TeaSuite.KV.IO.StreamUtils;
 using static TeaSuite.KV.IO.Formatters.PrimitiveFormatters;
 
 namespace TeaSuite.KV.IO.Formatters;
@@ -35,14 +36,14 @@ partial class PrimitiveFormattersTests
 
             int stringLength = RandomNumberGenerator.GetInt32(0, 4 * 1024);
             await new Int32Formatter().WriteAsync(stringLength, memstr, default);
-            StreamUtils.WriteRandom(stringLength, memstr);
+            WriteRandom(stringLength, memstr);
             memstr.WriteByte(sentinel);
 
             memstr.Position = 0;
             await formatter.SkipReadAsync(memstr, default);
             Assert.Equal(sentinel, memstr.ReadByte());
 
-            using Stream nonSeekable = StreamUtils.WrapNonSeekable(memstr);
+            using Stream nonSeekable = WrapNonSeekable(memstr);
             nonSeekable.Position = 0;
             await formatter.SkipReadAsync(nonSeekable, default);
             Assert.Equal(sentinel, nonSeekable.ReadByte());

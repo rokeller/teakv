@@ -9,7 +9,7 @@ partial class FileWriteAheadLog<TKey, TValue>
     /// <summary>
     /// The <see cref="SemaphoreSlim"/> that's used to guard WAL operations.
     /// </summary>
-    private readonly SemaphoreSlim walGuard = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim walGuard = new(1, 1);
 
     /// <summary>
     /// Asynchronously starts a new guarded operation.
@@ -21,7 +21,7 @@ partial class FileWriteAheadLog<TKey, TValue>
     private async ValueTask<GuardCompletion> StartGuardAsync()
     {
         await walGuard.WaitAsync().ConfigureAwaitLib();
-        return new GuardCompletion(walGuard);
+        return new(walGuard);
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ partial class FileWriteAheadLog<TKey, TValue>
     private GuardCompletion StartGuard()
     {
         walGuard.Wait();
-        return new GuardCompletion(walGuard);
+        return new(walGuard);
     }
 
     /// <summary>

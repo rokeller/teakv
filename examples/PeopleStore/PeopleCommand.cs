@@ -46,7 +46,7 @@ internal static partial class PeopleCommand
 
     private sealed class NopCommand : IPeopleCommand
     {
-        internal static readonly NopCommand Default = new NopCommand();
+        internal static readonly NopCommand Default = new();
 
         public Task RunAsync()
         {

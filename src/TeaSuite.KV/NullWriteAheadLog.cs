@@ -33,21 +33,21 @@ public sealed class NullWriteAheadLog<TKey, TValue> : IWriteAheadLog<TKey, TValu
     public ValueTask<bool> AnnounceWriteAsync(StoreEntry<TKey, TValue> entry)
     {
         // All write operations are always successful.
-        return new ValueTask<bool>(true);
+        return new(true);
     }
 
     /// <inheritdoc/>
     public ValueTask<IDisposable> PrepareTransitionAsync()
     {
         // Preparing a WAL transition is always a no-op.
-        return new ValueTask<IDisposable>(NullDisposable.Instance);
+        return new(NullDisposable.Instance);
     }
 
     /// <inheritdoc/>
     public ValueTask<IDisposable> CompleteTransitionAsync()
     {
         // Completing a WAL transition is always a no-op.
-        return new ValueTask<IDisposable>(NullDisposable.Instance);
+        return new(NullDisposable.Instance);
     }
 
     /// <inheritdoc/>

@@ -4,7 +4,7 @@ namespace TeaSuite.KV;
 
 public sealed class StoreSettingsTests
 {
-    private readonly StoreSettings settings = new StoreSettings();
+    private readonly StoreSettings settings = new();
 
     [Fact]
     public void DefaultPersistPolicyIsUsedByDefault()

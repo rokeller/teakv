@@ -8,7 +8,7 @@ public sealed class ReaderWriterLockingPolicyTests
 
     public ReaderWriterLockingPolicyTests()
     {
-        policy = new ReaderWriterLockingPolicy();
+        policy = new();
     }
 
     [Fact]

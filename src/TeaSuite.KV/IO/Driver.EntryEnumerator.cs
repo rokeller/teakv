@@ -79,9 +79,10 @@ partial class Driver<TKey, TValue>
             Debug.Assert(driver.reader != null, "The driver's reader must not be null.");
 
             this.driver = driver;
-            this.context = new ReadContext(driver.reader
-                .OpenDataForReadAsync(start, size, cancellationToken)
-                .GetValueTaskResult());
+            this.context = new(
+                driver.reader
+                    .OpenDataForReadAsync(start, size, cancellationToken)
+                    .GetValueTaskResult());
             this.cancellationToken = cancellationToken;
         }
 
@@ -126,7 +127,7 @@ partial class Driver<TKey, TValue>
                                                                cancellationToken)
                                                                .GetValueTaskResult();
 
-                current = new StoreEntry<TKey, TValue>(key, value);
+                current = new(key, value);
             }
             else
             {

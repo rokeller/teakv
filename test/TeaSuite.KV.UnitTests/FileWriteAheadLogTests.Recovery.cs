@@ -157,7 +157,7 @@ partial class FileWriteAheadLogTests
             {
                 // The WAL has one entry.
                 Assert.True(e.MoveNext());
-                Assert.Equal(new StoreEntry<int, string>(key, val), e.Current);
+                Assert.Equal(new(key, val), e.Current);
                 // We don't check if there are more entries.
             }
         });
@@ -184,7 +184,7 @@ partial class FileWriteAheadLogTests
             {
                 // The WAL has one entry.
                 Assert.True(e.MoveNext());
-                Assert.Equal(new StoreEntry<int, string>(key, val), e.Current);
+                Assert.Equal(new(key, val), e.Current);
                 Assert.False(e.MoveNext());
                 Assert.False(e.MoveNext());
             }
@@ -201,12 +201,12 @@ partial class FileWriteAheadLogTests
         int nextKey = 0, nextVal = 0;
         List<int> keys = keyGen.Take(6).ToList();
         List<string> values = valGen.Take(3).ToList();
-        List<StoreEntry<int, string>> expectedEntries = new List<StoreEntry<int, string>>();
+        List<StoreEntry<int, string>> expectedEntries = new();
 
         string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.closed");
         using (Stream stream = File.Create(closedFile))
         {
-            List<StoreEntry<int, string>> entries = new List<StoreEntry<int, string>>()
+            List<StoreEntry<int, string>> entries = new()
             {
                 new(keys[nextKey++], values[nextVal++]),
                 StoreEntry<int, string>.Delete(keys[nextKey++]),
@@ -219,7 +219,7 @@ partial class FileWriteAheadLogTests
         string openFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
         using (Stream stream = File.Create(openFile))
         {
-            List<StoreEntry<int, string>> entries = new List<StoreEntry<int, string>>()
+            List<StoreEntry<int, string>> entries = new()
             {
                 StoreEntry<int, string>.Delete(keys[nextKey++]),
                 new(keys[nextKey++], values[nextVal++]),
@@ -258,12 +258,12 @@ partial class FileWriteAheadLogTests
         int nextKey = 0, nextVal = 0;
         List<int> keys = keyGen.Take(6).ToList();
         List<string> values = valGen.Take(3).ToList();
-        List<StoreEntry<int, string>> expectedEntries = new List<StoreEntry<int, string>>();
+        List<StoreEntry<int, string>> expectedEntries = new();
 
         string closedFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.closed");
         using (Stream stream = File.Create(closedFile))
         {
-            List<StoreEntry<int, string>> entries = new List<StoreEntry<int, string>>()
+            List<StoreEntry<int, string>> entries = new()
             {
                 new(keys[nextKey++], values[nextVal++]),
                 StoreEntry<int, string>.Delete(keys[nextKey++]),
@@ -276,7 +276,7 @@ partial class FileWriteAheadLogTests
         string openFile = Path.Combine(walSettings.LogDirectoryPath, ".wal.open");
         using (Stream stream = File.Create(openFile))
         {
-            List<StoreEntry<int, string>> entries = new List<StoreEntry<int, string>>()
+            List<StoreEntry<int, string>> entries = new()
             {
                 StoreEntry<int, string>.Delete(keys[nextKey++]),
                 new(keys[nextKey++], values[nextVal++]),
@@ -327,7 +327,7 @@ partial class FileWriteAheadLogTests
             using (e)
             {
                 Assert.True(e.MoveNext());
-                Assert.Equal(new StoreEntry<int, string>(key, val), e.Current);
+                Assert.Equal(new(key, val), e.Current);
                 Assert.False(e.MoveNext());
             }
         });

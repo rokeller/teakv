@@ -10,7 +10,8 @@ using TeaSuite.KV.IO.Formatters;
 namespace TeaSuite.KV.IO;
 
 /// <summary>
-/// Implements <see cref="ISegmentManager{TKey, TValue}"/> using segments persisted to files.
+/// Implements <see cref="ISegmentManager{TKey, TValue}"/> using segments
+/// persisted to files.
 /// </summary>
 /// <typeparam name="TKey">
 /// The type of the keys used in the segments.
@@ -18,7 +19,8 @@ namespace TeaSuite.KV.IO;
 /// <typeparam name="TValue">
 /// The type of the values used in the segments.
 /// </typeparam>
-public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TValue>
+public partial class FileSegmentManager<TKey, TValue>
+    : ISegmentManager<TKey, TValue>
     where TKey : IComparable<TKey>
 {
     #region Consts
@@ -67,8 +69,8 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
     /// The <see cref="IEntryFormatter{TKey, TValue}"/> to use.
     /// </param>
     /// <param name="fileSegmentsOptions">
-    /// An <see cref="IOptionsMonitor{TOptions}"/> of <see cref="FileSegmentsOptions"/>
-    /// holding settings for the file segments.
+    /// An <see cref="IOptionsMonitor{TOptions}"/> of
+    /// <see cref="FileSegmentsOptions"/> holding settings for the file segments.
     /// </param>
     public FileSegmentManager(
         ILogger<FileSegmentManager<TKey, TValue>> logger,
@@ -80,7 +82,8 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
         this.loggerFactory = loggerFactory;
         this.entryFormatter = entryFormatter;
 
-        FileSegmentsOptions options = fileSegmentsOptions.GetForStore<FileSegmentsOptions, TKey, TValue>();
+        FileSegmentsOptions options = fileSegmentsOptions
+            .GetForStore<FileSegmentsOptions, TKey, TValue>();
         segmentsDir = Directory.CreateDirectory(options.SegmentsDirectoryPath);
     }
 
@@ -100,16 +103,18 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
     {
         (string indexFilePath, string dataFilePath) = GetFilePaths(segmentId);
 
-        return new Segment<TKey, TValue>(
+        return new(
             segmentId,
-            new Driver<TKey, TValue>(
+            new(
                 loggerFactory.CreateLogger<Driver<TKey, TValue>>(),
                 CreateSegmentWriter(indexFilePath, dataFilePath),
                 entryFormatter));
     }
 
     /// <inheritdoc/>
-    public virtual ValueTask DeleteSegmentAsync(long segmentId, CancellationToken cancellationToken)
+    public virtual ValueTask DeleteSegmentAsync(
+        long segmentId,
+        CancellationToken cancellationToken)
     {
         (string indexFilePath, string dataFilePath) = GetFilePaths(segmentId);
 
@@ -137,17 +142,21 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
             // But let's only return segments for which we also find a data file.
             if (File.Exists(dataFilePath))
             {
-                ReadOnlySpan<char> baseFileName = Path.GetFileNameWithoutExtension(dataFilePath);
-                long segmentId = Int64.Parse(baseFileName.Slice(SegmentFilePrefix.Length));
+                ReadOnlySpan<char> baseFileName = Path
+                    .GetFileNameWithoutExtension(dataFilePath);
+                long segmentId = Int64.Parse(
+                    baseFileName.Slice(SegmentFilePrefix.Length));
 
-                yield return CreateReadOnlySegment(segmentId, indexFilePath, dataFilePath);
+                yield return CreateReadOnlySegment(
+                    segmentId, indexFilePath, dataFilePath);
             }
         }
     }
 
     /// <summary>
-    /// Creates a new <see cref="ISegmentReader"/> for the index and data files from the specified
-    /// <paramref name="indexFilePath"/> and <paramref name="dataFilePath"/>.
+    /// Creates a new <see cref="ISegmentReader"/> for the index and data files
+    /// from the specified <paramref name="indexFilePath"/> and
+    /// <paramref name="dataFilePath"/>.
     /// </summary>
     /// <param name="indexFilePath">
     /// The path to the index file to create the <see cref="ISegmentReader"/> for.
@@ -156,16 +165,20 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
     /// The path to the data file to create the <see cref="ISegmentReader"/> for.
     /// </param>
     /// <returns>
-    /// An instance of <see cref="ISegmentReader"/> that can be used to read the segment.
+    /// An instance of <see cref="ISegmentReader"/> that can be used to read the
+    /// segment.
     /// </returns>
-    protected virtual ISegmentReader CreateSegmentReader(string indexFilePath, string dataFilePath)
+    protected virtual ISegmentReader CreateSegmentReader(
+        string indexFilePath,
+        string dataFilePath)
     {
         return new SegmentReader(indexFilePath, dataFilePath);
     }
 
     /// <summary>
-    /// Creates a new <see cref="ISegmentWriter"/> for the index and data files from the specified
-    /// <paramref name="indexFilePath"/> and <paramref name="dataFilePath"/>.
+    /// Creates a new <see cref="ISegmentWriter"/> for the index and data files
+    /// from the specified <paramref name="indexFilePath"/> and
+    /// <paramref name="dataFilePath"/>.
     /// </summary>
     /// <param name="indexFilePath">
     /// The path to the index file to create the <see cref="ISegmentWriter"/> for.
@@ -174,15 +187,19 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
     /// The path to the data file to create the <see cref="ISegmentWriter"/> for.
     /// </param>
     /// <returns>
-    /// An instance of <see cref="ISegmentWriter"/> that can be used to write the segment.
+    /// An instance of <see cref="ISegmentWriter"/> that can be used to write
+    /// the segment.
     /// </returns>
-    protected virtual ISegmentWriter CreateSegmentWriter(string indexFilePath, string dataFilePath)
+    protected virtual ISegmentWriter CreateSegmentWriter(
+        string indexFilePath,
+        string dataFilePath)
     {
         return new SegmentWriter(indexFilePath, dataFilePath);
     }
 
     /// <summary>
-    /// Creates a <see cref="Segment{TKey, TValue}"/> for reading the segment with the given <paramref name="segmentId"/>.
+    /// Creates a <see cref="Segment{TKey, TValue}"/> for reading the segment
+    /// with the given <paramref name="segmentId"/>.
     /// </summary>
     /// <param name="segmentId">
     /// The ID of the segment to read.
@@ -198,8 +215,8 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
     }
 
     /// <summary>
-    /// Creates a <see cref="Segment{TKey, TValue}"/> for reading the segment with the given <paramref name="segmentId"/>
-    /// and the specified file paths.
+    /// Creates a <see cref="Segment{TKey, TValue}"/> for reading the segment
+    /// with the given <paramref name="segmentId"/> and the specified file paths.
     /// </summary>
     /// <param name="segmentId">
     /// The ID of the segment to read.
@@ -213,11 +230,14 @@ public partial class FileSegmentManager<TKey, TValue> : ISegmentManager<TKey, TV
     /// <returns>
     /// An <see cref="Segment{TKey, TValue}"/> representing the requested segment.
     /// </returns>
-    private Segment<TKey, TValue> CreateReadOnlySegment(long segmentId, string indexFilePath, string dataFilePath)
+    private Segment<TKey, TValue> CreateReadOnlySegment(
+        long segmentId,
+        string indexFilePath,
+        string dataFilePath)
     {
-        return new Segment<TKey, TValue>(
+        return new(
             segmentId,
-            new Driver<TKey, TValue>(
+            new(
                 loggerFactory.CreateLogger<Driver<TKey, TValue>>(),
                 CreateSegmentReader(indexFilePath, dataFilePath),
                 entryFormatter

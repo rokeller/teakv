@@ -76,14 +76,14 @@ partial class DefaultKeyValueStore<TKey, TValue>
 
         if (null != oldEnumerator)
         {
-            return new InMemoryEnumerator(
+            return new(
                 readLock,
                 new MergingEnumerator<StoreEntry<TKey, TValue>>(
                     curEnumerator, oldEnumerator));
         }
         else
         {
-            return new InMemoryEnumerator(readLock, curEnumerator);
+            return new(readLock, curEnumerator);
         }
     }
 

@@ -48,7 +48,7 @@ partial class Driver<TKey, TValue>
                 flags |= SegmentFlags.LittleEndian;
             }
 
-            return new SegmentMetadata(flags, CurrentVersion, DateTime.UtcNow);
+            return new(flags, CurrentVersion, DateTime.UtcNow);
         }
 
         /// <summary>

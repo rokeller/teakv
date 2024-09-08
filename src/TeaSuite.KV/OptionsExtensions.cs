@@ -5,12 +5,12 @@ using Microsoft.Extensions.Options;
 namespace TeaSuite.KV;
 
 /// <summary>
-/// Extensions for options as used in the context of a Key/Value store.
+/// Extensions for options as used in the context of a Key-Value store.
 /// </summary>
 public static class OptionsExtensions
 {
     /// <summary>
-    /// Configures options for a Key/Value store.
+    /// Configures options for a Key-Value store.
     /// </summary>
     /// <param name="services">
     /// The <see cref="IServiceCollection"/> in which to register services.
@@ -41,7 +41,8 @@ public static class OptionsExtensions
     }
 
     /// <summary>
-    /// Gets a <typeparamref name="TOptions"/> instances for the typed Key/Value store from the given
+    /// Gets a <typeparamref name="TOptions"/> instances for the typed Key-Value
+    /// store from the given
     /// <paramref name="options"/>.
     /// </summary>
     /// <param name="options">
@@ -59,14 +60,15 @@ public static class OptionsExtensions
     /// <returns>
     /// A <typeparamref name="TOptions"/> instance.
     /// </returns>
-    public static TOptions GetForStore<TOptions, TKey, TValue>(this IOptionsMonitor<TOptions> options)
+    public static TOptions GetForStore<TOptions, TKey, TValue>(
+        this IOptionsMonitor<TOptions> options)
         where TOptions : class
     {
         return options.Get(GetOptionsName<TKey, TValue>());
     }
 
     /// <summary>
-    /// Gets the name for the named options of a Key/Value store.
+    /// Gets the name for the named options of a Key-Value store.
     /// </summary>
     /// <typeparam name="TKey">
     /// The type of keys for entries of the store.

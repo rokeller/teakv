@@ -81,7 +81,7 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     }
 
     /// <inheritdoc/>
-    public void Start(Action<IEnumerator<StoreEntry<TKey, TValue>>>? recover)
+    public virtual void Start(Action<IEnumerator<StoreEntry<TKey, TValue>>>? recover)
     {
         Recovery recovery = PrepareRecovery();
 
@@ -106,7 +106,7 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     }
 
     /// <inheritdoc/>
-    public async ValueTask<bool> AnnounceWriteAsync(StoreEntry<TKey, TValue> entry)
+    public async virtual ValueTask<bool> AnnounceWriteAsync(StoreEntry<TKey, TValue> entry)
     {
         EnsureWalWritable();
         using GuardCompletion tx = await StartGuardAsync().ConfigureAwaitLib();
@@ -115,7 +115,7 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     }
 
     /// <inheritdoc/>
-    public async ValueTask<IDisposable> PrepareTransitionAsync()
+    public async virtual ValueTask<IDisposable> PrepareTransitionAsync()
     {
         EnsureWalWritable();
         GuardCompletion tx = await StartGuardAsync().ConfigureAwaitLib();
@@ -142,7 +142,7 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     }
 
     /// <inheritdoc/>
-    public async ValueTask<IDisposable> CompleteTransitionAsync()
+    public async virtual ValueTask<IDisposable> CompleteTransitionAsync()
     {
         GuardCompletion tx = await StartGuardAsync().ConfigureAwaitLib();
 
@@ -155,7 +155,7 @@ public partial class FileWriteAheadLog<TKey, TValue> :
     }
 
     /// <inheritdoc/>
-    public void Shutdown()
+    public virtual void Shutdown()
     {
         EnsureWalWritable();
         using GuardCompletion tx = StartGuard();
@@ -206,7 +206,7 @@ public partial class FileWriteAheadLog<TKey, TValue> :
 
     private FileInfo GetWalFile(string name)
     {
-        return new FileInfo(Path.Combine(walDir.FullName, name));
+        return new(Path.Combine(walDir.FullName, name));
     }
 
     private void EnsureWalWritable()

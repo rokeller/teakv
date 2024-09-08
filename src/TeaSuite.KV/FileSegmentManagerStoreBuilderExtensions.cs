@@ -6,7 +6,8 @@ using TeaSuite.KV.IO;
 namespace TeaSuite.KV;
 
 /// <summary>
-/// Provides extension methods for dependency injection to setup file-based storage for Key/Value store segments.
+/// Provides extension methods for dependency injection to setup file-based 
+/// storage for Key-Value store segments.
 /// </summary>
 public static class FileSegmentManagerStoreBuilderExtensions
 {

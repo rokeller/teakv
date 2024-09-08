@@ -1,3 +1,5 @@
+using static TeaSuite.KV.IO.StreamUtils;
+
 namespace TeaSuite.KV.IO.Formatters;
 
 partial class PrimitiveFormattersTests
@@ -13,7 +15,7 @@ partial class PrimitiveFormattersTests
 
         public async virtual Task ReadWriteRoundtripWorks(T valueToWrite)
         {
-            using MemoryStream memstr = new MemoryStream();
+            using MemoryStream memstr = new();
 
             await formatter.WriteAsync(valueToWrite, memstr, default);
 
@@ -31,16 +33,16 @@ partial class PrimitiveFormattersTests
 
         public async Task SkipReadAsyncWorks(byte sentinel)
         {
-            using MemoryStream memstr = new MemoryStream();
+            using MemoryStream memstr = new();
 
-            StreamUtils.WriteRandom(DataLength, memstr);
+            WriteRandom(DataLength, memstr);
             memstr.WriteByte(sentinel);
 
             memstr.Position = 0;
             await formatter.SkipReadAsync(memstr, default);
             Assert.Equal(sentinel, memstr.ReadByte());
 
-            using Stream nonSeekable = StreamUtils.WrapNonSeekable(memstr);
+            using Stream nonSeekable = WrapNonSeekable(memstr);
             nonSeekable.Position = 0;
             await formatter.SkipReadAsync(nonSeekable, default);
             Assert.Equal(sentinel, nonSeekable.ReadByte());
