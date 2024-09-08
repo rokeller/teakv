@@ -2,14 +2,14 @@ namespace TeaSuite.KV.Data;
 
 public sealed class AvlTreeTests
 {
-    private readonly Fixture fixture = new Fixture();
-    private readonly AvlTree<int> tree = new AvlTree<int>(Comparer<int>.Default);
+    private readonly Fixture fixture = new();
+    private readonly AvlTree<int> tree = new(Comparer<int>.Default);
 
     [Fact]
     public void TestRandomTree()
     {
         const int NumItems = 5000;
-        HashSet<int> unique = new HashSet<int>(NumItems);
+        HashSet<int> unique = new(NumItems);
         for (int i = 0; i < NumItems; i++)
         {
             int random = fixture.Create<int>();
@@ -45,7 +45,7 @@ public sealed class AvlTreeTests
         tree.Upsert(0).Upsert(2).Upsert(4).Upsert(6).Upsert(8);
         tree.Upsert(9).Upsert(7).Upsert(5).Upsert(3).Upsert(1);
 
-        List<int> values = new List<int>(tree.Count);
+        List<int> values = new(tree.Count);
         using IEnumerator<int> enumerator = tree.GetInOrderEnumerator();
         while (enumerator.MoveNext())
         {

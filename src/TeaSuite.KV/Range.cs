@@ -9,15 +9,9 @@ namespace TeaSuite.KV;
 public readonly record struct Range<T> where T : IComparable<T>
 {
     /// <summary>
-    /// Gets an unbounded range, i.e. a range without a start or end.
+    /// The default i.e. unbounded range.
     /// </summary>
-    /// <returns>
-    /// A <see cref="Range{T}"/> that is unbounded.
-    /// </returns>
-    public static Range<T> Unbounded()
-    {
-        return new Range<T>();
-    }
+    public static readonly Range<T> Unbounded = new();
 
     /// <summary>
     /// Gets or sets a flag that indicates whether the <see cref="Start"/>

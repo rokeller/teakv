@@ -26,8 +26,9 @@ internal partial class AvlTree<T>
     public int Count => count;
 
     /// <summary>
-    /// Upserts a value in the tree. If a node with the given value already exists, the value is updated. Otherwise,
-    /// a new node is inserted and the tree balanced if necessary.
+    /// Upserts a value in the tree. If a node with the given value already
+    /// exists, the value is updated. Otherwise, a new node is inserted and the
+    /// tree balanced if necessary.
     /// </summary>
     /// <param name="value">
     /// The value to upsert.
@@ -36,15 +37,17 @@ internal partial class AvlTree<T>
     /// The current <see cref="AvlTree{T}"/>.
     /// </returns>
     /// <remarks>
-    /// Since value equality comparison is done using the <see cref="IComparable{T}"/> interface on the value, equality
-    /// of the value does not mean that the values are completely equivalent. In the case of key/value pairs where the
-    /// <see cref="IComparable{T}"/> implementation compares only the keys, obviously the values can be different.
+    /// Since value equality comparison is done using the <see cref="IComparable{T}"/>
+    /// interface on the value, equality of the value does not mean that the
+    /// values are completely equivalent. In the case of key/value pairs where
+    /// the <see cref="IComparable{T}"/> implementation compares only the keys,
+    /// obviously the values can be different.
     /// </remarks>
     public AvlTree<T> Upsert(T value)
     {
         if (root == null)
         {
-            root = new Node(value);
+            root = new(value);
             count = 1;
         }
         else if (!Upsert(root, value))
@@ -56,7 +59,8 @@ internal partial class AvlTree<T>
     }
 
     /// <summary>
-    /// Tries to find the current value for the given <paramref name="key"/> in the tree.
+    /// Tries to find the current value for the given <paramref name="key"/> in
+    /// the tree.
     /// </summary>
     /// <param name="key">
     /// The key to find.
@@ -97,14 +101,17 @@ internal partial class AvlTree<T>
     }
 
     /// <summary>
-    /// Gets an <see cref="IEnumerator{T}"/> that enumerates all the current tree's nodes in order.
+    /// Gets an <see cref="IEnumerator{T}"/> that enumerates all the current
+    /// tree's nodes in order.
     /// </summary>
     /// <returns>
-    /// An <see cref="IEnumerator{T}"/> that enumerates all the current tree's nodes in order.
+    /// An <see cref="IEnumerator{T}"/> that enumerates all the current tree's
+    /// nodes in order.
     /// </returns>
     public IEnumerator<T> GetInOrderEnumerator()
     {
-        // We need to find the left-most node (i.e. the smallest node) -- that will be where enumeration starts.
+        // We need to find the left-most node (i.e. the smallest node) -- that
+        // will be where enumeration starts.
         Node? leftMost = root;
         if (null != leftMost)
         {
@@ -132,7 +139,7 @@ internal partial class AvlTree<T>
                 }
                 else
                 {
-                    node.Left = new Node(value, node);
+                    node.Left = new(value, node);
                     node.BalanceFactor--;
                     break;
                 }
@@ -146,14 +153,15 @@ internal partial class AvlTree<T>
                 }
                 else
                 {
-                    node.Right = new Node(value, node);
+                    node.Right = new(value, node);
                     node.BalanceFactor++;
                     break;
                 }
             }
             else // (result == 0)
             {
-                // The balance of the tree remains unchanged (no nodes added), rebalancing is not needed.
+                // The balance of the tree remains unchanged (no nodes added),
+                // rebalancing is not needed.
                 node.Value = value;
                 return true;
             }
@@ -192,7 +200,7 @@ internal partial class AvlTree<T>
         }
     }
 
-    [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void RotateToRight(Node node)
     {
         // The left subtree is higher, so node.Left must not be null.
@@ -201,8 +209,9 @@ internal partial class AvlTree<T>
 
         if (x.BalanceFactor == -1)
         {
-            // Rotation to right: x is going to be the new root of the subtree, while node will take x's right
-            // subtree on the left; then node is going to be the new right subtree of x.
+            // Rotation to right: x is going to be the new root of the subtree,
+            // while node will take x's right subtree on the left; then node is
+            // going to be the new right subtree of x.
             x.Parent = node.Parent;
 
             if (node.Parent == null)
@@ -235,12 +244,14 @@ internal partial class AvlTree<T>
         }
         else
         {
-            Debug.Assert(x.BalanceFactor == 1, "The left subtree's balance factor must be 1.");
+            Debug.Assert(x.BalanceFactor == 1,
+                         "The left subtree's balance factor must be 1.");
             Debug.Assert(x.Right != null, "The right subtree must not be null.");
             Node y = x.Right;
-            // Double rotation to the right: y is going to be the new root of the subtree, having x on its left
-            // and node on its right. x's right subtree is replaced with y's old left subtree, and node's left
-            // subtree is replaced with y's old right subtree.
+            // Double rotation to the right: y is going to be the new root of
+            // the subtree, having x on its left and node on its right. x's
+            // right subtree is replaced with y's old left subtree, and node's
+            // left subtree is replaced with y's old right subtree.
             y.Parent = node.Parent;
 
             if (node.Parent == null)
@@ -297,7 +308,7 @@ internal partial class AvlTree<T>
         }
     }
 
-    [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void RotateToLeft(Node node)
     {
         // The right subtree is higher, so node.Right must not be null.
@@ -306,8 +317,9 @@ internal partial class AvlTree<T>
 
         if (x.BalanceFactor == 1)
         {
-            // Rotation to left: x is going to be the new root of the subtree, while node will take x's left
-            // subtree on the right; then node is going to be the new left subtree of x.
+            // Rotation to left: x is going to be the new root of the subtree,
+            // while node will take x's left subtree on the right; then node is
+            // going to be the new left subtree of x.
             x.Parent = node.Parent;
 
             if (node.Parent == null)
@@ -340,11 +352,13 @@ internal partial class AvlTree<T>
         }
         else
         {
-            Debug.Assert(x.BalanceFactor == -1, "The left subtree's balance factor must be -1.");
+            Debug.Assert(x.BalanceFactor == -1,
+                         "The left subtree's balance factor must be -1.");
             Debug.Assert(x.Left != null, "The left subtree must not be null.");
             Node y = x.Left;
-            // Double rotation to the left: y is going to be the new root of the subtree, having x on its right
-            // and node on its left. x's left subtree is replaced with y's old right subtree, and node's right
+            // Double rotation to the left: y is going to be the new root of the
+            // subtree, having x on its right and node on its left. x's left
+            // subtree is replaced with y's old right subtree, and node's right
             // subtree is replaced with y's old left subtree.
             y.Parent = node.Parent;
 

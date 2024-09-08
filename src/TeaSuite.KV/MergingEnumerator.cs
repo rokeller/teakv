@@ -30,14 +30,25 @@ internal sealed class MergingEnumerator<T> : IEnumerator<T> where T : IComparabl
     private T? current = default;
 
     /// <summary>
-    /// Initializes a new instance of MergingEnumerator.
+    /// Initializes a new instance of <see cref="MergingEnumerator{T}"/>.
     /// </summary>
     /// <param name="enumerators">
     /// The <see cref="IEnumerator{T}"/> instances with sorted items to be merged.
     /// </param>
     public MergingEnumerator(params IEnumerator<T>[] enumerators)
     {
-        this.enumerators = ImmutableList.CreateRange<IEnumerator<T>>(enumerators);
+        this.enumerators = ImmutableList.CreateRange(enumerators);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="MergingEnumerator{T}"/>.
+    /// </summary>
+    /// <param name="enumerators">
+    /// The <see cref="IEnumerator{T}"/> instances with sorted items to be merged.
+    /// </param>
+    public MergingEnumerator(IEnumerable<IEnumerator<T>> enumerators)
+    {
+        this.enumerators = ImmutableList.CreateRange(enumerators);
     }
 
     /// <inheritdoc/>
