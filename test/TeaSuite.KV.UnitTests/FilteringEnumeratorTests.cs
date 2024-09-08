@@ -4,14 +4,14 @@ namespace TeaSuite.KV;
 
 public sealed class FilteringEnumeratorTests
 {
-    private readonly Fixture fixture = new Fixture();
+    private readonly Fixture fixture = new();
 
     [Theory]
     [InlineData(100)]
     [InlineData(101)]
     public void EnumeratorWorks(int numItems)
     {
-        using FilteringEnumerator<int> filtering = new FilteringEnumerator<int>(
+        using FilteringEnumerator<int> filtering = new(
             Enumerable.Range(0, numItems).GetEnumerator(), KeepEven);
 
         while (filtering.MoveNext())

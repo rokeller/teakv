@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TeaSuite.KV.IO;
 using TeaSuite.KV.Policies;
+using static TeaSuite.KV.StoreUtils;
 
 namespace TeaSuite.KV;
 
@@ -16,7 +17,7 @@ partial class DefaultKeyValueStoreTests
     [Theory, AutoData]
     public void CtorStartsWalWithRecovery(int key1, int val1, int key2, int val2)
     {
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
         List<StoreEntry<int, int>> recoveredEntries = new()
         {
             new(key1, val1),

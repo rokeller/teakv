@@ -28,7 +28,7 @@ public sealed class TransformingEnumeratorTests
         }
 
         using TransformingEnumerator<int, long> enumerator =
-            new TransformingEnumerator<int, long>(input.GetEnumerator(), Transform);
+            new(input.GetEnumerator(), Transform);
 
         while (enumerator.MoveNext())
         {
@@ -52,7 +52,7 @@ public sealed class TransformingEnumeratorTests
         }
 
         using TransformingEnumerator<int, long> enumerator =
-            new TransformingEnumerator<int, long>(input.GetEnumerator(), Transform);
+            new(input.GetEnumerator(), Transform);
 
         while (enumerator.MoveNext())
         {

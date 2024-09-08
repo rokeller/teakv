@@ -1,4 +1,5 @@
 using Moq;
+using static TeaSuite.KV.IO.StreamUtils;
 
 namespace TeaSuite.KV.IO;
 
@@ -10,7 +11,8 @@ partial class DriverTests
         InitWriteOnlyDriver();
 
         Assert.NotNull(driver);
-        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => driver.GetEntryEnumerator());
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+            () => driver.GetEntryEnumerator());
 
         Assert.Equal("Cannot read in a non-readable segment.", ex.Message);
     }
@@ -22,7 +24,7 @@ partial class DriverTests
 
         Assert.NotNull(driver);
         InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
-            () => driver.GetEntryEnumerator(new Range<int>()
+            () => driver.GetEntryEnumerator(new()
             {
                 HasStart = true,
                 Start = 1234,
@@ -122,16 +124,20 @@ partial class DriverTests
     public void GetEntryEnumeratorReturnsEnumeratorForAllEntries(int numEntries)
     {
         // First entry is deleted, second not, third is deleted, fourth not, ...
-        using Stream dataStream = StreamUtils.CreateDataStream(
-            Enumerable.Range(0, numEntries).Select(i => i % 2 == 0 ? EntryFlags.Deleted : EntryFlags.None).ToArray());
+        using Stream dataStream = CreateDataStream(
+            Enumerable.Range(0, numEntries)
+                .Select(i => i % 2 == 0 ? EntryFlags.Deleted : EntryFlags.None)
+                .ToArray());
         mockSegmentReader.Setup(r => r.OpenDataForReadAsync(0, null, default))
             .Returns(new ValueTask<Stream>(dataStream));
 
         InitReadOnlyDriver(1000, 1000 + numEntries - 1);
         Assert.NotNull(driver);
 
-        var readKeySequence = mockEntryFormatter.SetupSequence(f => f.ReadKeyAsync(dataStream, default));
-        var readValueSequence = mockEntryFormatter.SetupSequence(f => f.ReadValueAsync(dataStream, default));
+        var readKeySequence = mockEntryFormatter
+            .SetupSequence(f => f.ReadKeyAsync(dataStream, default));
+        var readValueSequence = mockEntryFormatter
+            .SetupSequence(f => f.ReadValueAsync(dataStream, default));
         for (int i = 0; i < numEntries; i++)
         {
             readKeySequence.Returns(new ValueTask<int>(1000 + i));
@@ -168,14 +174,14 @@ partial class DriverTests
     public void GetEntryEnumeratorReturnsEmptyEnumeratorWhenNoRangeOverlap()
     {
         // First entry is deleted, second not, third is deleted, fourth not, ...
-        using Stream dataStream = StreamUtils.CreateDataStream(EntryFlags.None, EntryFlags.None);
+        using Stream dataStream = CreateDataStream(EntryFlags.None, EntryFlags.None);
         mockSegmentReader.Setup(r => r.OpenDataForReadAsync(0, null, default))
             .Returns(new ValueTask<Stream>(dataStream));
 
         InitReadOnlyDriver(1000, 2000);
         Assert.NotNull(driver);
 
-        Range<int> range = new Range<int>()
+        Range<int> range = new()
         {
             HasStart = true,
             Start = 0,
@@ -183,7 +189,8 @@ partial class DriverTests
             End = 100,
         };
 
-        using IEnumerator<StoreEntry<int, int>> enumerator = driver.GetEntryEnumerator(range);
+        using IEnumerator<StoreEntry<int, int>> enumerator = driver
+            .GetEntryEnumerator(range);
 
         Assert.False(enumerator.MoveNext());
     }

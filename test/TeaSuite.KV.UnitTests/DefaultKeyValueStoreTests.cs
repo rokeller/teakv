@@ -12,17 +12,17 @@ namespace TeaSuite.KV;
 
 public sealed partial class DefaultKeyValueStoreTests
 {
-    private readonly Fixture fixture = new Fixture();
+    private readonly Fixture fixture = new();
 
     private readonly Mock<IMemoryKeyValueStoreFactory<int, int>> mockMemFactory =
-        new Mock<IMemoryKeyValueStoreFactory<int, int>>(MockBehavior.Strict);
+        new(MockBehavior.Strict);
     private readonly Mock<IMemoryKeyValueStore<int, int>> mockMemStore =
-        new Mock<IMemoryKeyValueStore<int, int>>(MockBehavior.Strict);
-    private readonly StoreOptions<int, int> options = new StoreOptions<int, int>();
+        new(MockBehavior.Strict);
+    private readonly StoreOptions<int, int> options = new();
     private readonly Mock<IOptionsMonitor<StoreOptions<int, int>>> mockOptions =
-        new Mock<IOptionsMonitor<StoreOptions<int, int>>>(MockBehavior.Strict);
-    private readonly Mock<ISystemClock> mockClock = new Mock<ISystemClock>(MockBehavior.Strict);
-    private readonly DateTimeOffset utcNow = new DateTimeOffset(2022, 10, 21, 13, 30, 13, 0, TimeSpan.Zero);
+        new(MockBehavior.Strict);
+    private readonly Mock<ISystemClock> mockClock = new(MockBehavior.Strict);
+    private readonly DateTimeOffset utcNow = new(2022, 10, 21, 13, 30, 13, 0, TimeSpan.Zero);
 
     public DefaultKeyValueStoreTests()
     {
@@ -34,8 +34,8 @@ public sealed partial class DefaultKeyValueStoreTests
     [Theory, AutoData]
     public void TryGetFindsNothingInZeroSegmentsAndEmptyMemoryStore(int key)
     {
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -44,7 +44,8 @@ public sealed partial class DefaultKeyValueStoreTests
             mockOptions.Object,
             mockClock.Object);
 
-        mockMemStore.Setup(s => s.TryGet(key, out It.Ref<StoreEntry<int, int>>.IsAny)).Returns(false);
+        mockMemStore.Setup(s => s.TryGet(
+            key, out It.Ref<StoreEntry<int, int>>.IsAny)).Returns(false);
 
         Assert.False(store.TryGet(key, out _));
     }
@@ -54,8 +55,8 @@ public sealed partial class DefaultKeyValueStoreTests
     [InlineData(42, false)]
     public void TryGetFindsEntryInMemoryStore(int key, bool deletedInMemory)
     {
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -65,9 +66,10 @@ public sealed partial class DefaultKeyValueStoreTests
             mockClock.Object);
 
         mockMemStore.Setup(s => s.TryGet(key, out It.Ref<StoreEntry<int, int>>.IsAny))
-            .Callback(new StoreUtils.TryGetCallback<int, int>(
+            .Callback(new TryGetCallback<int, int>(
                 (int key, out StoreEntry<int, int> value) => value =
-                    deletedInMemory ? StoreEntry<int, int>.Delete(key) : new StoreEntry<int, int>(key, key * 7)))
+                    deletedInMemory ? StoreEntry<int, int>.Delete(key) :
+                                      new(key, key * 7)))
             .Returns(true);
 
         Assert.Equal(!deletedInMemory, store.TryGet(key, out int value));
@@ -80,8 +82,8 @@ public sealed partial class DefaultKeyValueStoreTests
     [Theory, AutoData]
     public void SetOverwritesEntryInMemoryStore(int key, int firstValue, int secondValue)
     {
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -92,13 +94,15 @@ public sealed partial class DefaultKeyValueStoreTests
 
         int? lastValue = null;
         mockMemStore.Setup(s => s.TryGet(key, out It.Ref<StoreEntry<int, int>>.IsAny))
-            .Callback(new StoreUtils.TryGetCallback<int, int>(
+            .Callback(new TryGetCallback<int, int>(
                 (int key, out StoreEntry<int, int> value) => value = lastValue.HasValue ?
-                    new StoreEntry<int, int>(key, lastValue.Value) :
+                    new(key, lastValue.Value) :
                     StoreEntry<int, int>.Delete(key)))
             .Returns(true);
         mockMemStore.Setup(s => s.Set(It.Is<StoreEntry<int, int>>(entry =>
-            entry.Key == key && !entry.IsDeleted && (entry.Value == firstValue || entry.Value == secondValue))))
+            entry.Key == key &&
+            !entry.IsDeleted &&
+            (entry.Value == firstValue || entry.Value == secondValue))))
             .Callback((StoreEntry<int, int> entry) => lastValue = entry.Value);
         mockMemStore.SetupGet(s => s.Count).Returns(1);
 
@@ -116,8 +120,8 @@ public sealed partial class DefaultKeyValueStoreTests
     [Theory, AutoData]
     public void DeleteOverwritesEntryInMemoryStore(int key, int initialValue)
     {
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -128,12 +132,13 @@ public sealed partial class DefaultKeyValueStoreTests
 
         int? lastValue = initialValue;
         mockMemStore.Setup(s => s.TryGet(key, out It.Ref<StoreEntry<int, int>>.IsAny))
-            .Callback(new StoreUtils.TryGetCallback<int, int>(
+            .Callback(new TryGetCallback<int, int>(
                 (int key, out StoreEntry<int, int> value) => value = lastValue.HasValue ?
-                    new StoreEntry<int, int>(key, lastValue.Value) :
+                    new(key, lastValue.Value) :
                     StoreEntry<int, int>.Delete(key)))
             .Returns(true);
-        mockMemStore.Setup(s => s.Set(It.Is<StoreEntry<int, int>>(entry => entry.Key == key && entry.IsDeleted)))
+        mockMemStore.Setup(s => s.Set(
+            It.Is<StoreEntry<int, int>>(entry => entry.Key == key && entry.IsDeleted)))
             .Callback(() => lastValue = null);
         mockMemStore.SetupGet(s => s.Count).Returns(1);
 
@@ -151,8 +156,8 @@ public sealed partial class DefaultKeyValueStoreTests
             .Returns(mockMemStore.Object)
             .Throws(new Exception("A second store must not be created."));
 
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -161,7 +166,8 @@ public sealed partial class DefaultKeyValueStoreTests
             mockOptions.Object,
             mockClock.Object);
 
-        mockMemStore.Setup(s => s.Set(It.Is<StoreEntry<int, int>>(entry => entry.Key == key && entry.IsDeleted)));
+        mockMemStore.Setup(s => s.Set(
+            It.Is<StoreEntry<int, int>>(entry => entry.Key == key && entry.IsDeleted)));
         mockMemStore.SetupSequence(s => s.Count).Returns(1).Returns(0 /* because we want to avoid a flush on close */);
 
         options.Settings.PersistPolicy = new DefaultPersistPolicy(0, TimeSpan.Zero);
@@ -179,19 +185,21 @@ public sealed partial class DefaultKeyValueStoreTests
             .Returns(mockMemStore.Object)
             .Throws(new Exception("A third store must not be created."));
 
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
 
         mockSegmentManager.Setup(m => m.CreateNewSegment(0)).Returns((long segmentId) =>
         {
-            Mock<IEntryFormatter<int, int>> mockFormatter = new Mock<IEntryFormatter<int, int>>(MockBehavior.Loose);
-            WriterContext context = StoreUtils.CreateSegmentWriter(MockBehavior.Loose);
+            Mock<IEntryFormatter<int, int>> mockFormatter = new(MockBehavior.Loose);
+            WriterContext context = CreateSegmentWriter(MockBehavior.Loose);
 
-            return StoreUtils.CreateSegment(segmentId, context.Writer.Object, mockFormatter.Object);
+            return CreateSegment(segmentId, context.Writer.Object, mockFormatter.Object);
         });
 
-        mockMemStore.Setup(s => s.GetOrderedEnumerator()).Returns(fixture.Create<IEnumerator<StoreEntry<int, int>>>());
+        mockMemStore
+            .Setup(s => s.GetOrderedEnumerator())
+            .Returns(fixture.Create<IEnumerator<StoreEntry<int, int>>>());
 
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -214,36 +222,39 @@ public sealed partial class DefaultKeyValueStoreTests
         int key2,
         int expectedValue2)
     {
-        Mock<IMemoryKeyValueStore<int, int>> mockMemStore2 = new Mock<IMemoryKeyValueStore<int, int>>(MockBehavior.Strict);
+        Mock<IMemoryKeyValueStore<int, int>> mockMemStore2 = new(MockBehavior.Strict);
 
         mockMemFactory.SetupSequence(f => f.Create())
             .Returns(mockMemStore.Object)
             .Returns(mockMemStore2.Object)
             .Throws(new Exception("A third store must not be created."));
 
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
 
-        SemaphoreSlim oldStoreValuesRead = new SemaphoreSlim(0, 1);
+        SemaphoreSlim oldStoreValuesRead = new(0, 1);
         mockSegmentManager.Setup(m => m.CreateNewSegment(0)).Returns((long segmentId) =>
         {
-            Mock<IEntryFormatter<int, int>> mockFormatter = new Mock<IEntryFormatter<int, int>>(MockBehavior.Loose);
-            WriterContext context = StoreUtils.CreateSegmentWriter(MockBehavior.Loose);
+            Mock<IEntryFormatter<int, int>> mockFormatter = new(MockBehavior.Loose);
+            WriterContext context = CreateSegmentWriter(MockBehavior.Loose);
 
-            return StoreUtils.CreateSegment(segmentId, context.Writer.Object, mockFormatter.Object);
+            return CreateSegment(segmentId, context.Writer.Object, mockFormatter.Object);
         });
         mockSegmentManager.Setup(m => m.MakeReadOnly(It.IsAny<Segment<int, int>>()))
             .Callback(() => oldStoreValuesRead.Wait())
             .Returns(
-                (Segment<int, int> segment) => StoreUtils.CreateSegment(segment.Id, new StoreEntry<int, int>(-1, -1)));
+                (Segment<int, int> segment) => CreateSegment(
+                    segment.Id, new StoreEntry<int,int>(-1, -1)));
 
-        SemaphoreSlim waitForPersist = new SemaphoreSlim(0, 1);
-        mockMemStore.Setup(s => s.Set(It.Is<StoreEntry<int, int>>(e => e.Key == key1 && e.Value == expectedValue1)));
+        SemaphoreSlim waitForPersist = new(0, 1);
+        mockMemStore.Setup(s => s.Set(It.Is<StoreEntry<int, int>>(
+            e => e.Key == key1 && e.Value == expectedValue1)));
         mockMemStore.Setup(s => s.GetOrderedEnumerator())
             .Callback(() => waitForPersist.Release())
             .Returns(fixture.Create<IEnumerator<StoreEntry<int, int>>>());
-        mockMemStore2.Setup(s => s.Set(It.Is<StoreEntry<int, int>>(e => e.Key == key2 && e.Value == expectedValue2)));
+        mockMemStore2.Setup(s => s.Set(It.Is<StoreEntry<int, int>>(
+            e => e.Key == key2 && e.Value == expectedValue2)));
 
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -256,28 +267,38 @@ public sealed partial class DefaultKeyValueStoreTests
         mockMemStore2.Setup(s => s.Count).Returns(0 /* we don't want to start another flush */);
         options.Settings.PersistPolicy = new DefaultPersistPolicy(1, TimeSpan.Zero);
 
-        SemaphoreSlim segmentMadeReadOnly = new SemaphoreSlim(0, 1);
-        Mock<IMergePolicy> mockMergePolicy = new Mock<IMergePolicy>(MockBehavior.Strict);
-        mockMergePolicy.Setup(p => p.ShouldMerge(It.IsAny<long>())).Callback(() => segmentMadeReadOnly.Release()).Returns(true);
+        SemaphoreSlim segmentMadeReadOnly = new(0, 1);
+        Mock<IMergePolicy> mockMergePolicy = new(MockBehavior.Strict);
+        mockMergePolicy
+            .Setup(p => p.ShouldMerge(It.IsAny<long>()))
+            .Callback(() => segmentMadeReadOnly.Release())
+            .Returns(true);
         options.Settings.MergePolicy = mockMergePolicy.Object;
         options.Settings.MinimumPersistInterval = TimeSpan.Zero;
         int msAdded = 0;
-        mockClock.Setup(c => c.UtcNow).Returns(() => utcNow.AddMilliseconds(Interlocked.Increment(ref msAdded)));
+        mockClock
+            .Setup(c => c.UtcNow)
+            .Returns(() => utcNow.AddMilliseconds(Interlocked.Increment(ref msAdded)));
 
         store.Set(key1, expectedValue1);
         waitForPersist.Wait();
         store.Set(key2, expectedValue2);
 
-        // A TryGet now will first look in mockMemStore2, and if that fails, it will check mockMemStore (being persisted).
-        mockMemStore2.Setup(s => s.TryGet(key1, out It.Ref<StoreEntry<int, int>>.IsAny)).Returns(false);
+        // A TryGet now will first look in mockMemStore2, and if that fails, it
+        // will check mockMemStore (being persisted).
+        mockMemStore2
+            .Setup(s => s.TryGet(key1, out It.Ref<StoreEntry<int, int>>.IsAny))
+            .Returns(false);
         mockMemStore2.Setup(s => s.TryGet(key2, out It.Ref<StoreEntry<int, int>>.IsAny))
-            .Callback(new StoreUtils.TryGetCallback<int, int>(
-                (int key, out StoreEntry<int, int> value) => value = new StoreEntry<int, int>(key, expectedValue2)))
+            .Callback(new TryGetCallback<int, int>(
+                (int key, out StoreEntry<int, int> value) => value = new(key, expectedValue2)))
             .Returns(true);
-        mockMemStore2.Setup(s => s.TryGet(-1, out It.Ref<StoreEntry<int, int>>.IsAny)).Returns(false);
+        mockMemStore2
+            .Setup(s => s.TryGet(-1, out It.Ref<StoreEntry<int, int>>.IsAny))
+            .Returns(false);
         mockMemStore.Setup(s => s.TryGet(key1, out It.Ref<StoreEntry<int, int>>.IsAny))
-            .Callback(new StoreUtils.TryGetCallback<int, int>(
-                (int key, out StoreEntry<int, int> value) => value = new StoreEntry<int, int>(key, expectedValue1)))
+            .Callback(new TryGetCallback<int, int>(
+                (int key, out StoreEntry<int, int> value) => value = new(key, expectedValue1)))
             .Returns(true);
 
         Assert.True(store.TryGet(key1, out int actualValue1));
@@ -299,30 +320,34 @@ public sealed partial class DefaultKeyValueStoreTests
     [Fact]
     public async Task MergeWorks()
     {
-        // Segment 1: entries for keys 0-4; keys 1 and 3 are deleted; all others have value 1;
-        Segment<int, int> seg1 = StoreUtils.CreateSegment(1, Enumerable.Range(0, 5)
-            .Select(i => i % 2 == 0 ? new StoreEntry<int, int>(i, 1) : StoreEntry<int, int>.Delete(i))
+        // Segment 1: entries for keys 0-4; keys 1 and 3 are deleted; all others
+        //have value 1;
+        Segment<int, int> seg1 = CreateSegment(1, Enumerable.Range(0, 5)
+            .Select(i => i % 2 == 0 ? new(i, 1) : StoreEntry<int, int>.Delete(i))
             .ToArray());
         // Segment 2: entries for keys 0,3,6,9; all have value 2.
-        Segment<int, int> seg2 = StoreUtils.CreateSegment(2, Enumerable.Range(0, 4)
-            .Select(i => new StoreEntry<int, int>(i * 3, 2)).ToArray());
+        Segment<int, int> seg2 = CreateSegment(2, Enumerable.Range(0, 4)
+            .Select(i => new StoreEntry<int,int>(i * 3, 2)).ToArray());
 
         Segment<int, int> newSegment = default;
         Mock<IEntryFormatter<int, int>>? mockFormatter = default;
         WriterContext writerContext = default;
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager(seg1, seg2);
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager(seg1, seg2);
         mockSegmentManager.Setup(m => m.CreateNewSegment(3))
             .Returns((long segmentId) =>
             {
-                mockFormatter = new Mock<IEntryFormatter<int, int>>(MockBehavior.Loose);
-                writerContext = StoreUtils.CreateSegmentWriter(MockBehavior.Loose);
-                newSegment = StoreUtils.CreateSegment(segmentId, writerContext.Writer.Object, mockFormatter.Object);
+                mockFormatter = new(MockBehavior.Loose);
+                writerContext = CreateSegmentWriter(MockBehavior.Loose);
+                newSegment = CreateSegment(
+                    segmentId, writerContext.Writer.Object, mockFormatter.Object);
 
                 return newSegment;
             });
-        mockSegmentManager.Setup(m => m.DeleteSegmentAsync(It.IsIn<long>(1, 2), default)).Returns(new ValueTask());
+        mockSegmentManager
+            .Setup(m => m.DeleteSegmentAsync(It.IsIn<long>(1, 2), default))
+            .Returns(new ValueTask());
 
-        SemaphoreSlim newSegmentMadeReadOnly = new SemaphoreSlim(0, 1);
+        SemaphoreSlim newSegmentMadeReadOnly = new(0, 1);
         mockSegmentManager.Setup(m => m.MakeReadOnly(It.Is<Segment<int, int>>(
                 seg => seg.Id == newSegment.Id && seg.Driver == seg.Driver)))
             .Returns(() =>
@@ -331,7 +356,7 @@ public sealed partial class DefaultKeyValueStoreTests
                 return newSegment;
             });
 
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -348,16 +373,26 @@ public sealed partial class DefaultKeyValueStoreTests
         Assert.NotNull(writerContext.IndexStream);
         Assert.NotNull(writerContext.DataStream);
         // The merged sequence should be (key,value): (0,2),(2,1),(3,2),(4,1),(6,2),(9,2) -- 6 entries total.
-        mockFormatter.Verify(f => f.WriteKeyAsync(0, writerContext.DataStream, default), Times.Once);
-        mockFormatter.Verify(f => f.WriteKeyAsync(2, writerContext.DataStream, default), Times.Once);
-        mockFormatter.Verify(f => f.WriteKeyAsync(3, writerContext.DataStream, default), Times.Once);
-        mockFormatter.Verify(f => f.WriteKeyAsync(4, writerContext.DataStream, default), Times.Once);
-        mockFormatter.Verify(f => f.WriteKeyAsync(6, writerContext.DataStream, default), Times.Once);
-        mockFormatter.Verify(f => f.WriteKeyAsync(9, writerContext.DataStream, default), Times.Once);
-        mockFormatter.Verify(f => f.WriteValueAsync(1, writerContext.DataStream, default), Times.Exactly(2));
-        mockFormatter.Verify(f => f.WriteValueAsync(2, writerContext.DataStream, default), Times.Exactly(4));
+        mockFormatter.Verify(f => f.WriteKeyAsync(
+            0, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(
+            2, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(
+            3, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(
+            4, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(
+            6, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(
+            9, writerContext.DataStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteValueAsync(
+            1, writerContext.DataStream, default), Times.Exactly(2));
+        mockFormatter.Verify(f => f.WriteValueAsync(
+            2, writerContext.DataStream, default), Times.Exactly(4));
         // The index will only have the first and last entries' keys: 0 and 9.
-        mockFormatter.Verify(f => f.WriteKeyAsync(0, writerContext.IndexStream, default), Times.Once);
-        mockFormatter.Verify(f => f.WriteKeyAsync(9, writerContext.IndexStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(
+            0, writerContext.IndexStream, default), Times.Once);
+        mockFormatter.Verify(f => f.WriteKeyAsync(
+            9, writerContext.IndexStream, default), Times.Once);
     }
 }

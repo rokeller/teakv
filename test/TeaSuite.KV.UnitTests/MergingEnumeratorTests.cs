@@ -6,18 +6,22 @@ namespace TeaSuite.KV;
 
 public sealed class MergingEnumeratorTests
 {
-    private readonly Fixture fixture = new Fixture();
+    private readonly Fixture fixture = new();
 
     [Fact]
     public void EnumeratorProducesOrderedResults()
     {
-        fixture.Register<IEnumerable<int>>(() => GeneratedSortedEnumerable(fixture.Create<byte>()));
+        fixture.Register<IEnumerable<int>>(
+            () => GeneratedSortedEnumerable(fixture.Create<byte>()));
         IEnumerable<int> first = fixture.Create<IEnumerable<int>>();
         IEnumerable<int> second = fixture.Create<IEnumerable<int>>();
         IEnumerable<int> third = fixture.Create<IEnumerable<int>>();
-        IEnumerator<int> union = first.Union(second).Union(third).OrderBy(i => i).GetEnumerator();
+        IEnumerator<int> union = first
+            .Union(second)
+            .Union(third)
+            .OrderBy(i => i).GetEnumerator();
 
-        MergingEnumerator<int> enumerator = new MergingEnumerator<int>(
+        MergingEnumerator<int> enumerator = new(
             first.GetEnumerator(), second.GetEnumerator(), third.GetEnumerator());
         int? prevValue = null;
 
@@ -41,11 +45,12 @@ public sealed class MergingEnumeratorTests
     [Fact]
     public void SingleInputEnumeratorWorks()
     {
-        fixture.Register<IEnumerable<int>>(() => GeneratedSortedEnumerable(fixture.Create<byte>()));
+        fixture.Register<IEnumerable<int>>(
+            () => GeneratedSortedEnumerable(fixture.Create<byte>()));
         IEnumerable<int> first = fixture.Create<IEnumerable<int>>();
         IEnumerator<int> union = first.GetEnumerator();
 
-        MergingEnumerator<int> enumerator = new MergingEnumerator<int>(first.GetEnumerator());
+        MergingEnumerator<int> enumerator = new(first.GetEnumerator());
         int? prevValue = null;
 
         while (enumerator.MoveNext())
@@ -67,7 +72,7 @@ public sealed class MergingEnumeratorTests
     [Fact]
     public void EmptyInputEnumeratorsWorks()
     {
-        MergingEnumerator<int> enumerator = new MergingEnumerator<int>();
+        MergingEnumerator<int> enumerator = new();
 
         Assert.False(enumerator.MoveNext());
     }
@@ -75,9 +80,9 @@ public sealed class MergingEnumeratorTests
     [Fact]
     public void DisposeDisposesEnumerators()
     {
-        Mock<IEnumerator<int>> mockEnum1 = new Mock<IEnumerator<int>>(MockBehavior.Strict);
-        Mock<IEnumerator<int>> mockEnum2 = new Mock<IEnumerator<int>>(MockBehavior.Strict);
-        MergingEnumerator<int> enumerator = new MergingEnumerator<int>(mockEnum1.Object, mockEnum2.Object);
+        Mock<IEnumerator<int>> mockEnum1 = new(MockBehavior.Strict);
+        Mock<IEnumerator<int>> mockEnum2 = new(MockBehavior.Strict);
+        MergingEnumerator<int> enumerator = new(mockEnum1.Object, mockEnum2.Object);
 
         mockEnum1.Setup(e => e.Dispose());
         mockEnum2.Setup(e => e.Dispose());
@@ -99,7 +104,7 @@ public sealed class MergingEnumeratorTests
     private IEnumerable<int> GeneratedSortedEnumerable(byte size)
     {
         int n = 1 + size;
-        List<int> items = new List<int>(n);
+        List<int> items = new(n);
 
         for (int i = 0; i < n; i++)
         {

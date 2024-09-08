@@ -5,8 +5,9 @@ namespace TeaSuite.KV.IO;
 
 partial class DriverTests
 {
-    private readonly StoreSettings settings = new StoreSettings();
-    private readonly Mock<IEnumerator<StoreEntry<int, int>>> mockEnumerator = new(MockBehavior.Strict);
+    private readonly StoreSettings settings = new();
+    private readonly Mock<IEnumerator<StoreEntry<int, int>>> mockEnumerator =
+        new(MockBehavior.Strict);
 
     [Fact]
     public async Task WriteEntriesAsyncThrowsForReadOnlyDriver()
@@ -56,8 +57,8 @@ partial class DriverTests
     [InlineData(10, true)]
     public async Task WriteEntriesAsyncReturnsEntryCount(int entryCount, bool indexEveryEntry)
     {
-        using MemoryStream indexStream = new MemoryStream();
-        using MemoryStream dataStream = new MemoryStream();
+        using MemoryStream indexStream = new();
+        using MemoryStream dataStream = new();
 
         IEnumerable<int> indexEnum = Enumerable.Range(0, entryCount);
         Func<int, int> keyFunc = (i) => i + 1000;
@@ -67,26 +68,35 @@ partial class DriverTests
             settings.IndexPolicy = new DefaultIndexPolicy(100, 1);
         }
 
-        List<StoreEntry<int, int>> entries = new List<StoreEntry<int, int>>(indexEnum
-            .Select(i => i % 2 == 0 ? new StoreEntry<int, int>(keyFunc(i), i) : StoreEntry<int, int>.Delete(keyFunc(i))));
-        mockSegmentWriter.Setup(w => w.OpenIndexForWriteAsync(default)).ReturnsAsync(indexStream);
-        mockSegmentWriter.Setup(w => w.OpenDataForWriteAsync(default)).ReturnsAsync(dataStream);
+        List<StoreEntry<int, int>> entries = new (indexEnum
+            .Select(i => i % 2 == 0 ? new(keyFunc(i), i) :
+                                      StoreEntry<int, int>.Delete(keyFunc(i))));
+        mockSegmentWriter
+            .Setup(w => w.OpenIndexForWriteAsync(default))
+            .ReturnsAsync(indexStream);
+        mockSegmentWriter
+            .Setup(w => w.OpenDataForWriteAsync(default))
+            .ReturnsAsync(dataStream);
 
         mockEntryFormatter
-            .Setup(f => f.WriteKeyAsync(It.IsIn<int>(indexEnum.Select(keyFunc)), indexStream, default))
+            .Setup(f => f.WriteKeyAsync(
+                It.IsIn<int>(indexEnum.Select(keyFunc)), indexStream, default))
             .Returns(new ValueTask());
         mockEntryFormatter
-            .Setup(f => f.WriteKeyAsync(It.IsIn<int>(indexEnum.Select(keyFunc)), dataStream, default))
+            .Setup(f => f.WriteKeyAsync(
+                It.IsIn<int>(indexEnum.Select(keyFunc)), dataStream, default))
             .Returns(new ValueTask());
         mockEntryFormatter
             .Setup(f => f.WriteValueAsync(
-                It.IsIn<int>(Enumerable.Range(0, (entryCount + 1) / 2).Select(i => i * 2)), dataStream, default))
+                It.IsIn<int>(Enumerable.Range(0, (entryCount + 1) / 2)
+                    .Select(i => i * 2)), dataStream, default))
             .Returns(new ValueTask());
 
         InitWriteOnlyDriver();
         Assert.NotNull(driver);
 
-        long numWritten = await driver.WriteEntriesAsync(entries.GetEnumerator(), settings, default);
+        long numWritten = await driver.WriteEntriesAsync(
+            entries.GetEnumerator(), settings, default);
         Assert.Equal((long)entryCount, numWritten);
 
         if (indexEveryEntry)
@@ -102,7 +112,8 @@ partial class DriverTests
                 Times.Exactly(Math.Min(2, entryCount)));
         }
 
-        mockEntryFormatter.Verify(f => f.WriteKeyAsync(It.IsAny<int>(), dataStream, default), Times.Exactly(entryCount));
+        mockEntryFormatter.Verify(f => f.WriteKeyAsync(
+            It.IsAny<int>(), dataStream, default), Times.Exactly(entryCount));
         mockEntryFormatter.Verify(
             f => f.WriteValueAsync(It.IsAny<int>(), dataStream, default),
             Times.Exactly((entryCount + 1) / 2));

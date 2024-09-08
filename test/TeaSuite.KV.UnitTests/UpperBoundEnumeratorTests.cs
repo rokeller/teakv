@@ -20,7 +20,7 @@ public sealed class UpperBoundEnumeratorTests
         int numItems = 0;
         IEnumerable<int> values = Enumerable.Range(0, bound).Select(x => x * 2);
 
-        using UpperBoundEnumerator<int> enumerator = new UpperBoundEnumerator<int>(
+        using UpperBoundEnumerator<int> enumerator = new(
             values.GetEnumerator(), bound);
         int lastLowerBound = 0;
 
@@ -42,7 +42,7 @@ public sealed class UpperBoundEnumeratorTests
         int numItems = 0;
         IEnumerable<int> values = Enumerable.Range(0, bound - 1);
 
-        using UpperBoundEnumerator<int> enumerator = new UpperBoundEnumerator<int>(
+        using UpperBoundEnumerator<int> enumerator = new(
             values.GetEnumerator(), bound);
         int lastLowerBound = 0;
 
@@ -63,7 +63,7 @@ public sealed class UpperBoundEnumeratorTests
         int numItems = 0;
         List<int> values = Enumerable.Range(0, bound).Select(x => x * 2).ToList();
 
-        using UpperBoundEnumerator<int> enumerator = new UpperBoundEnumerator<int>(
+        using UpperBoundEnumerator<int> enumerator = new(
             values.GetEnumerator(), bound);
         int lastLowerBound = 0;
 

@@ -2,7 +2,7 @@ namespace TeaSuite.KV.Policies;
 
 public sealed class DefaultMergePolicyTests
 {
-    private readonly DefaultMergePolicy policy = new DefaultMergePolicy(4);
+    private readonly DefaultMergePolicy policy = new(4);
 
     [Theory]
     [InlineData(4)]
@@ -25,7 +25,7 @@ public sealed class DefaultMergePolicyTests
     [Fact]
     public void DefaultCtorEnforcesMergeStartingAt2Segments()
     {
-        DefaultMergePolicy policy = new DefaultMergePolicy();
+        DefaultMergePolicy policy = new();
 
         Assert.False(policy.ShouldMerge(0));
         Assert.False(policy.ShouldMerge(1));

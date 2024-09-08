@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TeaSuite.KV.IO;
 using TeaSuite.KV.Policies;
+using static TeaSuite.KV.StoreUtils;
 
 namespace TeaSuite.KV;
 
@@ -18,8 +19,8 @@ partial class DefaultKeyValueStoreTests
         DateTimeOffset? lockAcquired = null;
         DateTimeOffset? memStoreChecked = null;
         DateTimeOffset? lockReleased = null;
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -62,8 +63,8 @@ partial class DefaultKeyValueStoreTests
         DateTimeOffset? lockAcquired = null;
         DateTimeOffset? memStoreWritten = null;
         DateTimeOffset? lockReleased = null;
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,
@@ -108,8 +109,8 @@ partial class DefaultKeyValueStoreTests
         DateTimeOffset? lockAcquired = null;
         DateTimeOffset? memStoreWritten = null;
         DateTimeOffset? lockReleased = null;
-        Mock<ISegmentManager<int, int>> mockSegmentManager = StoreUtils.CreateSegmentManager();
-        DefaultKeyValueStore<int, int> store = new DefaultKeyValueStore<int, int>(
+        Mock<ISegmentManager<int, int>> mockSegmentManager = CreateSegmentManager();
+        DefaultKeyValueStore<int, int> store = new(
             NullLogger<DefaultKeyValueStore<int, int>>.Instance,
             NullWriteAheadLog<int, int>.Instance,
             mockMemFactory.Object,

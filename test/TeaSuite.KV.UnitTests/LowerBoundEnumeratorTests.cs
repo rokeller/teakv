@@ -20,7 +20,7 @@ public sealed class LowerBoundEnumeratorTests
         int numItems = 0;
         IEnumerable<int> values = Enumerable.Range(1, bound + 1);
 
-        using LowerBoundEnumerator<int> enumerator = new LowerBoundEnumerator<int>(
+        using LowerBoundEnumerator<int> enumerator = new(
             values.GetEnumerator(), bound);
         int lastLowerBound = bound;
 
@@ -41,7 +41,7 @@ public sealed class LowerBoundEnumeratorTests
         bound = 1 + Math.Abs(bound);
         IEnumerable<int> values = Enumerable.Range(0, bound);
 
-        using LowerBoundEnumerator<int> enumerator = new LowerBoundEnumerator<int>(
+        using LowerBoundEnumerator<int> enumerator = new(
             values.GetEnumerator(), bound);
 
         Assert.False(enumerator.MoveNext());
@@ -54,7 +54,7 @@ public sealed class LowerBoundEnumeratorTests
         int numItems = 0;
         List<int> values = Enumerable.Range(1, bound + 1).ToList();
 
-        using LowerBoundEnumerator<int> enumerator = new LowerBoundEnumerator<int>(
+        using LowerBoundEnumerator<int> enumerator = new(
             values.GetEnumerator(), bound);
         int lastLowerBound = bound;
 
