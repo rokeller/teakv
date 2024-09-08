@@ -6,7 +6,7 @@ using TeaSuite.KV.Data;
 namespace TeaSuite.KV;
 
 /// <summary>
-/// Implements the builder patterns for Key/Value stores of <typeparamref name="TKey"/>
+/// Implements the builder patterns for Key-Value stores of <typeparamref name="TKey"/>
 /// and <typeparamref name="TValue"/>.
 /// </summary>
 /// <typeparam name="TKey">

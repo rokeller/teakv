@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace TeaSuite.KV.IO.Formatters;
 
 /// <summary>
-/// Defines the contract for a formatter of entries in a key/value store.
+/// Defines the contract for a formatter of entries in a Key-Value store.
 /// </summary>
 /// <typeparam name="TKey">
 /// The type of the keys used with entries.

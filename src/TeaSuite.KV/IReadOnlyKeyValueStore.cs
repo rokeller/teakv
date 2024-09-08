@@ -4,13 +4,13 @@ using System.Collections.Generic;
 namespace TeaSuite.KV;
 
 /// <summary>
-/// Defines the contract for a read-only Key/Value store.
+/// Defines the contract for a read-only Key-Value store.
 /// </summary>
 /// <typeparam name="TKey">
-/// The type of the keys used for entries in the Key/Value store.
+/// The type of the keys used for entries in the Key-Value store.
 /// </typeparam>
 /// <typeparam name="TValue">
-/// The type of the values used for entries in the Key/Value store.
+/// The type of the values used for entries in the Key-Value store.
 /// </typeparam>
 public interface IReadOnlyKeyValueStore<TKey, TValue>
     where TKey : IComparable<TKey>
@@ -34,7 +34,7 @@ public interface IReadOnlyKeyValueStore<TKey, TValue>
     bool TryGet(TKey key, out TValue? value);
 
     /// <summary>
-    /// Closes the Key/Value store. When this method finishes, the store can no
+    /// Closes the Key-Value store. When this method finishes, the store can no
     /// longer be used for reads.
     /// </summary>
     void Close();

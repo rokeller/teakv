@@ -4,7 +4,7 @@ using TeaSuite.KV.Policies;
 namespace TeaSuite.KV;
 
 /// <summary>
-/// Defines settings for a Key/Value store.
+/// Defines settings for a Key-Value store.
 /// </summary>
 public class StoreSettings
 {
