@@ -201,6 +201,34 @@ sealed class PeopleDirectory
 }
 ```
 
+### Read-Only Key-Value Store
+
+The `IReadOnlyKeyValueStore<TKey,TValue>` is also inherited by the
+`IKeyValueStore<TKey,TValue>` interface and therefore you can cast any
+implementation of the key-value store to that read-only interface should that be
+needed.
+
+Should you however need a key-value store that is alwyas read-only, for example
+to read an offline-copy of an infrequently changing key-value store, or
+something like a read replica, you can use a dedicated implementation of
+`IReadOnlyKeyValueStore<,>`, like this;
+
+```csharp
+services
+    .AddReadOnlyKeyValueStore<int,string>()
+    .AddMemoryMappedFileStorage(options =>
+    {
+        options.SegmentsDirectoryPath = "my-kv-store";
+    ]);
+```
+
+You can configure this very much like a writable key-value store, with they key
+difference that there is no in-memory key-value store to accept writes and thus
+the persistence policy has no effect, as do the merge, index, or locking
+policies. There's also no write-ahead log because there are no writes. For such
+read-only key-value store instances it is typically recommended to use a
+memory-mapped file segment manager, like shown above.
+
 ### Crash Recovery
 
 By default, the Key-Value store does not recover entries written to the in-memory
