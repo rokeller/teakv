@@ -23,8 +23,12 @@ partial class PrimitiveFormatters
         {
             Span<byte> buffer = stackalloc byte[4 * sizeof(int)];
             source.Fill(buffer);
-
+#if NETSTANDARD
             int[] bits = new int[4];
+#else
+            Span<int> bits = stackalloc int[4];
+#endif
+
             bits[0] = BitConverter.ToInt32(buffer[0..sizeof(int)]);
             bits[1] = BitConverter.ToInt32(buffer[sizeof(int)..(2 * sizeof(int))]);
             bits[2] = BitConverter.ToInt32(buffer[(2 * sizeof(int))..(3 * sizeof(int))]);
@@ -36,16 +40,7 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
-            if (source.CanSeek)
-            {
-                source.Seek(4 * sizeof(int), SeekOrigin.Current);
-            }
-            else
-            {
-                Span<byte> buffer = stackalloc byte[4 * sizeof(int)];
-                source.Fill(buffer);
-            }
-
+            source.Skip(4 * sizeof(int));
             return default;
         }
 
@@ -53,7 +48,7 @@ partial class PrimitiveFormatters
         public ValueTask WriteAsync(decimal value, Stream destination, CancellationToken cancellationToken)
         {
             int[] bits = Decimal.GetBits(value);
-            Debug.Assert(bits.Length == 4, "There must be for 32-bit integers.");
+            Debug.Assert(bits.Length == 4, "There must be four 32-bit integers.");
 
             Span<byte> buffer = stackalloc byte[4 * sizeof(int)];
             bool successful = BitConverter.TryWriteBytes(buffer[0..sizeof(int)], bits[0]);
@@ -69,7 +64,6 @@ partial class PrimitiveFormatters
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
 
             destination.Write(buffer);
-
             return default;
         }
     }

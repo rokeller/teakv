@@ -23,23 +23,13 @@ partial class PrimitiveFormatters
         {
             Span<byte> buffer = stackalloc byte[sizeof(uint)];
             source.Fill(buffer);
-
             return new(BitConverter.ToUInt32(buffer));
         }
 
         /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
-            if (source.CanSeek)
-            {
-                source.Seek(sizeof(uint), SeekOrigin.Current);
-            }
-            else
-            {
-                Span<byte> buffer = stackalloc byte[sizeof(uint)];
-                source.Fill(buffer);
-            }
-
+            source.Skip(sizeof(uint));
             return default;
         }
 
@@ -49,9 +39,7 @@ partial class PrimitiveFormatters
             Span<byte> buffer = stackalloc byte[sizeof(uint)];
             bool successful = BitConverter.TryWriteBytes(buffer, value);
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
-
             destination.Write(buffer);
-
             return default;
         }
     }

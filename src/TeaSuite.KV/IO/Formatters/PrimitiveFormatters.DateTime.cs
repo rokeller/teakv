@@ -23,25 +23,14 @@ partial class PrimitiveFormatters
         {
             Span<byte> buffer = stackalloc byte[sizeof(long)];
             source.Fill(buffer);
-
             long ticks = BitConverter.ToInt64(buffer);
-
             return new(new DateTime(ticks, DateTimeKind.Utc));
         }
 
         /// <inheritdoc/>
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
-            if (source.CanSeek)
-            {
-                source.Seek(sizeof(long), SeekOrigin.Current);
-            }
-            else
-            {
-                Span<byte> buffer = stackalloc byte[sizeof(long)];
-                source.Fill(buffer);
-            }
-
+            source.Skip(sizeof(long));
             return default;
         }
 
@@ -51,9 +40,7 @@ partial class PrimitiveFormatters
             Span<byte> buffer = stackalloc byte[sizeof(long)];
             bool successful = BitConverter.TryWriteBytes(buffer, value.ToUniversalTime().Ticks);
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
-
             destination.Write(buffer);
-
             return default;
         }
     }

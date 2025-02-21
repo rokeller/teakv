@@ -153,28 +153,15 @@ partial class DefaultKeyValueStoreTests
             mockClock.Object);
 
         Mock<IEnumerator<StoreEntry<int, int>>> mockInner = new(MockBehavior.Strict);
-#if NET6_0
-        List<IEnumerator<StoreEntry<int, int>>> enumerators = new()
-        {
-            mockInner.Object,
-        };
-#else
         List<IEnumerator<StoreEntry<int, int>>> enumerators = [mockInner.Object,];
-#endif
 
         Type storeType = store.GetType();
         MethodInfo? method = storeType.GetMethod(
             "CreateEntriesEnumerator", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(method);
 
-#if NET6_0
-        IEnumerator<StoreEntry<int, int>> result =
-            (IEnumerator<StoreEntry<int, int>>)method.Invoke(
-                store, new object[] { enumerators, })!;
-#else
         IEnumerator<StoreEntry<int, int>> result =
             (IEnumerator<StoreEntry<int, int>>)method.Invoke(store, [enumerators,])!;
-#endif
         Assert.IsType<MergingEnumerator<StoreEntry<int, int>>>(result);
     }
 }
