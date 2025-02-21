@@ -113,7 +113,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     /// Gets an <see cref="ArraySegment{T}"/> of <see cref="IndexEntry"/> describing the index of the segment; only set
     /// when the driver is in read-only mode.
     /// </summary>
-    internal ArraySegment<Driver<TKey, TValue>.IndexEntry>? Index { get; }
+    internal ArraySegment<IndexEntry>? Index { get; }
 
     /// <summary>
     /// Gets the <see cref="IndexEntry"/> describing the first entry in the segment; only set when the driver is in
@@ -267,7 +267,11 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
 
         if (Index.HasValue)
         {
+#if NETSTANDARD
+            ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array);
+#else
             ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array!);
+#endif
         }
 
         if (disposeReader.HasValue)
@@ -301,7 +305,11 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
 
                 if (Index.HasValue)
                 {
+#if NETSTANDARD
+                    ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array);
+#else
                     ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array!);
+#endif
                 }
             }
 
