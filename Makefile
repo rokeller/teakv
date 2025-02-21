@@ -6,6 +6,10 @@ build:
 examples:
 	dotnet build Examples.sln
 
+.PHONY: examples.run.shorturl
+examples.run.shorturl:
+	dotnet run --project examples/ShortUrl
+
 .PHONY: clean
 clean:
 	dotnet clean TeaSuite.KV.sln
@@ -25,7 +29,7 @@ coverage:
 	rm -rf TestResults/Temp
 	dotnet test TeaSuite.KV.sln --collect:'XPlat Code Coverage' \
 		--results-directory TestResults/Temp
-	DOTNET_ROOT=/usr/share/dotnet reportgenerator \
+	reportgenerator \
 		-reports:"TestResults/Temp/*/coverage.cobertura.xml"  \
 		-targetdir:"coverage"                                 \
 		-historydir:"coverage/history"                        \
