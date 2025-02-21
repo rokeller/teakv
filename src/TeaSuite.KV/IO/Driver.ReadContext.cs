@@ -36,7 +36,12 @@ partial class Driver<TKey, TValue>
         /// <inheritdoc/>
         public ValueTask DisposeAsync()
         {
+#if NETSTANDARD2_0
+            Stream.Dispose();
+            return default;
+#else
             return Stream.DisposeAsync();
+#endif
         }
     }
 }

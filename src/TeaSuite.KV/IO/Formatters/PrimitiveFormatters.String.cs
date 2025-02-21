@@ -37,6 +37,12 @@ partial class PrimitiveFormatters
             Stream source,
             CancellationToken cancellationToken)
         {
+#if NETSTANDARD2_0
+            byte[] buffer = new byte[sizeof(int)];
+            source.Fill(buffer, buffer.Length);
+            int byteLength = BitConverter.ToInt32(buffer, 0);
+            return new(ReadWithPoolAsync(source, byteLength, cancellationToken));
+#else
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             source.Fill(buffer);
 
@@ -45,14 +51,13 @@ partial class PrimitiveFormatters
             {
                 buffer = stackalloc byte[byteLength];
                 source.Fill(buffer);
-
                 return new(encoding.GetString(buffer));
             }
             else
             {
-                return new(
-                    ReadWithPoolAsync(source, byteLength, cancellationToken));
+                return new(ReadWithPoolAsync(source, byteLength, cancellationToken));
             }
+#endif
         }
 
         /// <inheritdoc/>
@@ -60,20 +65,16 @@ partial class PrimitiveFormatters
             Stream source,
             CancellationToken cancellationToken)
         {
+#if NETSTANDARD2_0
+            byte[] buffer = new byte[sizeof(int)];
+            source.Fill(buffer, buffer.Length);
+            int remaining = BitConverter.ToInt32(buffer, 0);
+#else
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             source.Fill(buffer);
-
             int remaining = BitConverter.ToInt32(buffer);
-            buffer = stackalloc byte[Math.Min(remaining, MaxStackAlloc)];
-
-            while (remaining > 0)
-            {
-                Span<byte> localBuffer = buffer.Slice(
-                    0, Math.Min(remaining, MaxStackAlloc));
-                source.Fill(localBuffer);
-                remaining -= localBuffer.Length;
-            }
-
+#endif
+            source.Skip(remaining);
             return default;
         }
 
@@ -84,14 +85,21 @@ partial class PrimitiveFormatters
             CancellationToken cancellationToken)
         {
             int byteLength = encoding.GetByteCount(value);
-
+#if NETSTANDARD2_0
+            byte[] buffer = BitConverter.GetBytes(byteLength);
+            destination.Write(buffer, 0, buffer.Length);
+#else
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             bool successful = BitConverter.TryWriteBytes(buffer, byteLength);
             Debug.Assert(successful,
                 "Writing the value to the byte buffer must have been successful.");
 
             destination.Write(buffer);
+#endif
 
+#if NETSTANDARD2_0
+            return WriteWithPoolAsync(destination, value, byteLength);
+#else
             if (byteLength <= MaxStackAlloc)
             {
                 buffer = stackalloc byte[byteLength];
@@ -102,17 +110,9 @@ partial class PrimitiveFormatters
             }
             else
             {
-                byte[] byteBuffer = ArrayPool<byte>.Shared.Rent(byteLength);
-                try
-                {
-                    encoding.GetBytes(value, 0, value.Length, byteBuffer, 0);
-                    return new(destination.WriteAsync(byteBuffer, 0, byteLength));
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(byteBuffer);
-                }
+                return WriteWithPoolAsync(destination, value, byteLength);
             }
+#endif
         }
 
         /// <summary>
@@ -140,12 +140,27 @@ partial class PrimitiveFormatters
             CancellationToken cancellationToken)
         {
             byte[] byteBuffer = ArrayPool<byte>.Shared.Rent(length);
-            Memory<byte> memoryBuffer = new(byteBuffer, 0, length);
             try
             {
-                await source.FillAsync(memoryBuffer, cancellationToken).ConfigureAwaitLib();
+                await source.FillAsync(byteBuffer, length, cancellationToken).ConfigureAwaitLib();
+                return encoding.GetString(byteBuffer, 0, length);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(byteBuffer);
+            }
+        }
 
-                return encoding.GetString(memoryBuffer.Span);
+        private ValueTask WriteWithPoolAsync(
+            Stream destination,
+            string value,
+            int byteLength)
+        {
+            byte[] byteBuffer = ArrayPool<byte>.Shared.Rent(byteLength);
+            try
+            {
+                encoding.GetBytes(value, 0, value.Length, byteBuffer, 0);
+                return new(destination.WriteAsync(byteBuffer, 0, byteLength));
             }
             finally
             {
