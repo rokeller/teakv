@@ -21,21 +21,13 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask<decimal> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
-#if NETSTANDARD
-            byte[] buffer = new byte[4 * sizeof(int)]; ;
-            source.Fill(buffer, buffer.Length);
-
-            int[] bits = new int[4];
-            bits[0] = BitConverter.ToInt32(buffer, 0);
-            bits[1] = BitConverter.ToInt32(buffer, sizeof(int));
-            bits[2] = BitConverter.ToInt32(buffer, 2 * sizeof(int));
-            bits[3] = BitConverter.ToInt32(buffer, 3 * sizeof(int));
-
-            return new(new Decimal(bits));
-#else
             Span<byte> buffer = stackalloc byte[4 * sizeof(int)];
             source.Fill(buffer);
+#if NETSTANDARD
+            int[] bits = new int[4];
+#else
             Span<int> bits = stackalloc int[4];
+#endif
 
             bits[0] = BitConverter.ToInt32(buffer[0..sizeof(int)]);
             bits[1] = BitConverter.ToInt32(buffer[sizeof(int)..(2 * sizeof(int))]);
@@ -43,7 +35,6 @@ partial class PrimitiveFormatters
             bits[3] = BitConverter.ToInt32(buffer[(3 * sizeof(int))..]);
 
             return new(new Decimal(bits));
-#endif
         }
 
         /// <inheritdoc/>
