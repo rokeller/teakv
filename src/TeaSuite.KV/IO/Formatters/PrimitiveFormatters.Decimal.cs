@@ -59,12 +59,6 @@ partial class PrimitiveFormatters
             int[] bits = Decimal.GetBits(value);
             Debug.Assert(bits.Length == 4, "There must be four 32-bit integers.");
 
-#if NETSTANDARD2_0
-            destination.Write(BitConverter.GetBytes(bits[0]), 0, sizeof(int));
-            destination.Write(BitConverter.GetBytes(bits[1]), 0, sizeof(int));
-            destination.Write(BitConverter.GetBytes(bits[2]), 0, sizeof(int));
-            destination.Write(BitConverter.GetBytes(bits[4]), 0, sizeof(int));
-#else
             Span<byte> buffer = stackalloc byte[4 * sizeof(int)];
             bool successful = BitConverter.TryWriteBytes(buffer[0..sizeof(int)], bits[0]);
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
@@ -79,7 +73,6 @@ partial class PrimitiveFormatters
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
 
             destination.Write(buffer);
-#endif
             return default;
         }
     }

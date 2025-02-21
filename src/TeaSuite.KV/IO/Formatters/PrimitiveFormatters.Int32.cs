@@ -21,15 +21,9 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask<int> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
-            byte[] buffer = new byte[sizeof(int)];
-            source.Fill(buffer, buffer.Length);
-            return new(BitConverter.ToInt32(buffer, 0));
-#else
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             source.Fill(buffer);
             return new(BitConverter.ToInt32(buffer));
-#endif
         }
 
         /// <inheritdoc/>
@@ -42,16 +36,10 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask WriteAsync(int value, Stream destination, CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
-            byte[] buffer = BitConverter.GetBytes(value);
-            destination.Write(buffer, 0, buffer.Length);
-#else
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             bool successful = BitConverter.TryWriteBytes(buffer, value);
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
-
             destination.Write(buffer);
-#endif
             return default;
         }
     }
