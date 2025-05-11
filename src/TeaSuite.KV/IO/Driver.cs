@@ -198,10 +198,17 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         long? curDataPos = null;
         StoreEntry<TKey, TValue>? lastEntry = null;
 
+#if NETSTANDARD
+        using Stream indexStream = await writer
+            .OpenIndexForWriteAsync(cancellationToken).ConfigureAwaitLib();
+        using Stream dataStream = await writer
+            .OpenDataForWriteAsync(cancellationToken).ConfigureAwaitLib();
+#else
         await using Stream indexStream = await writer
             .OpenIndexForWriteAsync(cancellationToken).ConfigureAwaitLib();
         await using Stream dataStream = await writer
             .OpenDataForWriteAsync(cancellationToken).ConfigureAwaitLib();
+#endif
         await using WriteContext indexContext = new(indexStream);
         await using WriteContext dataContext = new(dataStream);
 
@@ -409,11 +416,19 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     {
         if (index.Count == 1)
         {
+#if NETSTANDARD
+            return index.Get(0);
+#else
             return index[0];
+#endif
         }
 
         int midPos = index.Count / 2;
+#if NETSTANDARD
+        IndexEntry middle = index.Get(midPos);
+#else
         IndexEntry middle = index[midPos];
+#endif
 
         int result = key.CompareTo(middle.Key);
         if (result == 0)
@@ -484,8 +499,13 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         Debug.Assert(reader != null, "The reader must not be null.");
         Debug.Assert(Index.HasValue, "The index must not be null.");
 
+#if NETSTANDARD
+        IndexEntry? nextEntry = entry.Id < Index.Value.Count - 1 ?
+            Index.Value.Get(entry.Id + 1) : null;
+#else
         IndexEntry? nextEntry = entry.Id < Index.Value.Count - 1 ?
             Index.Value[entry.Id + 1] : null;
+#endif
 
         return nextEntry;
     }

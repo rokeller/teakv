@@ -37,6 +37,12 @@ partial class PrimitiveFormatters
             Stream source,
             CancellationToken cancellationToken)
         {
+#if NETSTANDARD
+            byte[] buffer = new byte[sizeof(int)];
+            source.Fill(buffer, buffer.Length);
+            int byteLength = BitConverter.ToInt32(buffer, 0);
+            return new(ReadWithPoolAsync(source, byteLength, cancellationToken));
+#else
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             source.Fill(buffer);
 
@@ -51,6 +57,7 @@ partial class PrimitiveFormatters
             {
                 return new(ReadWithPoolAsync(source, byteLength, cancellationToken));
             }
+#endif
         }
 
         /// <inheritdoc/>
@@ -58,9 +65,15 @@ partial class PrimitiveFormatters
             Stream source,
             CancellationToken cancellationToken)
         {
+#if NETSTANDARD
+            byte[] buffer = new byte[sizeof(int)];
+            source.Fill(buffer, buffer.Length);
+            int remaining = BitConverter.ToInt32(buffer, 0);
+#else
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             source.Fill(buffer);
             int remaining = BitConverter.ToInt32(buffer);
+#endif
             source.Skip(remaining);
             return default;
         }
@@ -72,12 +85,20 @@ partial class PrimitiveFormatters
             CancellationToken cancellationToken)
         {
             int byteLength = encoding.GetByteCount(value);
+#if NETSTANDARD
+            byte[] buffer = BitConverter.GetBytes(byteLength);
+            destination.Write(buffer, 0, buffer.Length);
+#else
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             bool successful = BitConverter.TryWriteBytes(buffer, byteLength);
             Debug.Assert(successful,
                 "Writing the value to the byte buffer must have been successful.");
             destination.Write(buffer);
+#endif
 
+#if NETSTANDARD
+            return WriteWithPoolAsync(destination, value, byteLength);
+#else
             if (byteLength <= MaxStackAlloc)
             {
                 buffer = stackalloc byte[byteLength];
@@ -90,6 +111,7 @@ partial class PrimitiveFormatters
             {
                 return WriteWithPoolAsync(destination, value, byteLength);
             }
+#endif
         }
 
         /// <summary>

@@ -6,6 +6,7 @@ on:
 
 env:
   DOTNET_VERSIONS: |
+    6.0.x
     8.0.x
 
 jobs:

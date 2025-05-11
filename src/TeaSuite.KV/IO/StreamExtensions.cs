@@ -90,6 +90,37 @@ public static partial class StreamExtensions
         }
     }
 
+#if NETSTANDARD
+    /// <summary>
+    /// Skips the given number of bytes on the <see cref="Stream"/>.
+    /// </summary>
+    /// <param name="stream">
+    /// The <see cref="Stream"/> to skip bytes on.
+    /// </param>
+    /// <param name="numberOfBytes">
+    /// The number of bytes to skip.
+    /// </param>
+    public static void Skip(this Stream stream, int numberOfBytes)
+    {
+        if (stream.CanSeek)
+        {
+            stream.Seek(numberOfBytes, SeekOrigin.Current);
+            return;
+        }
+
+        byte[] buffer = new byte[Math.Min(numberOfBytes, MaxStackAlloc)];
+        int remaining = numberOfBytes;
+
+        while (remaining > 0)
+        {
+            int toRead = Math.Min(remaining, MaxStackAlloc);
+            stream.Fill(buffer, toRead);
+            remaining -= toRead;
+        }
+    }
+#endif
+
+#if !NETSTANDARD
     /// <summary>
     /// Fills the given <paramref name="buffer"/> with data from the <see cref="Stream"/>
     /// </summary>
@@ -181,4 +212,5 @@ public static partial class StreamExtensions
             remaining -= localBuffer.Length;
         }
     }
+#endif
 }
