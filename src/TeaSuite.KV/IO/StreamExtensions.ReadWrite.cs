@@ -17,7 +17,7 @@ static partial class StreamExtensions
     /// </param>
     public static void Read(this Stream source, out long value)
     {
-#if NETSTANDARD2_0
+#if NETSTANDARD
         byte[] buffer = new byte[sizeof(long)];
         source.Fill(buffer, buffer.Length);
         value = BitConverter.ToInt64(buffer, 0);
@@ -39,7 +39,7 @@ static partial class StreamExtensions
     /// </param>
     public static void Write(this Stream destination, long value)
     {
-#if NETSTANDARD2_0
+#if NETSTANDARD
         byte[] buffer = BitConverter.GetBytes(value);
         destination.Write(buffer, 0, buffer.Length);
 #else
@@ -61,7 +61,7 @@ static partial class StreamExtensions
     /// </param>
     public static void Read(this Stream source, out uint value)
     {
-#if NETSTANDARD2_0
+#if NETSTANDARD
         byte[] buffer = new byte[sizeof(uint)];
         source.Fill(buffer, buffer.Length);
         value = BitConverter.ToUInt32(buffer, 0);
@@ -83,7 +83,7 @@ static partial class StreamExtensions
     /// </param>
     public static void Write(this Stream destination, uint value)
     {
-#if NETSTANDARD2_0
+#if NETSTANDARD
         byte[] buffer = BitConverter.GetBytes(value);
         destination.Write(buffer, 0, buffer.Length);
 #else

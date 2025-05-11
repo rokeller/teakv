@@ -198,7 +198,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         long? curDataPos = null;
         StoreEntry<TKey, TValue>? lastEntry = null;
 
-#if NETSTANDARD2_0
+#if NETSTANDARD
         using Stream indexStream = await writer
             .OpenIndexForWriteAsync(cancellationToken).ConfigureAwaitLib();
         using Stream dataStream = await writer
@@ -274,7 +274,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
 
         if (Index.HasValue)
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array);
 #else
             ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array!);
@@ -312,7 +312,7 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
 
                 if (Index.HasValue)
                 {
-#if NETSTANDARD2_0
+#if NETSTANDARD
                     ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array);
 #else
                     ArrayPool<IndexEntry>.Shared.Return(Index.Value.Array!);
@@ -414,17 +414,21 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     /// </remarks>
     private static IndexEntry FindLastIndexEntryBeforeKey(TKey key, ArraySegment<IndexEntry> index)
     {
-#if NETSTANDARD2_0
-        // TODO: implement
-        throw new NotImplementedException();
-#else
         if (index.Count == 1)
         {
+#if NETSTANDARD
+            return index.Get(0);
+#else
             return index[0];
+#endif
         }
 
         int midPos = index.Count / 2;
+#if NETSTANDARD
+        IndexEntry middle = index.Get(midPos);
+#else
         IndexEntry middle = index[midPos];
+#endif
 
         int result = key.CompareTo(middle.Key);
         if (result == 0)
@@ -439,7 +443,6 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         {
             return FindLastIndexEntryBeforeKey(key, index.Slice(midPos));
         }
-#endif
     }
 
     /// <summary>
@@ -493,18 +496,18 @@ public sealed partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
     /// </returns>
     private IndexEntry? GetNextIndexEntry(IndexEntry entry)
     {
-#if NETSTANDARD2_0
-        // TODO: implement
-        throw new NotImplementedException();
-#else
         Debug.Assert(reader != null, "The reader must not be null.");
         Debug.Assert(Index.HasValue, "The index must not be null.");
 
+#if NETSTANDARD
+        IndexEntry? nextEntry = entry.Id < Index.Value.Count - 1 ?
+            Index.Value.Get(entry.Id + 1) : null;
+#else
         IndexEntry? nextEntry = entry.Id < Index.Value.Count - 1 ?
             Index.Value[entry.Id + 1] : null;
+#endif
 
         return nextEntry;
-#endif
     }
 
     /// <summary>

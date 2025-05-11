@@ -25,7 +25,7 @@ coverage:
 	rm -rf TestResults/Temp
 	dotnet test TeaSuite.KV.sln --collect:'XPlat Code Coverage' \
 		--results-directory TestResults/Temp
-	DOTNET_ROOT=/usr/share/dotnet reportgenerator \
+	reportgenerator \
 		-reports:"TestResults/Temp/*/coverage.cobertura.xml"  \
 		-targetdir:"coverage"                                 \
 		-historydir:"coverage/history"                        \

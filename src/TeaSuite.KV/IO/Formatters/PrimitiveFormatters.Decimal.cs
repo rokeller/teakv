@@ -59,11 +59,11 @@ partial class PrimitiveFormatters
             int[] bits = Decimal.GetBits(value);
             Debug.Assert(bits.Length == 4, "There must be four 32-bit integers.");
 
-#if NETSTANDARD2_0
+#if NETSTANDARD
             destination.Write(BitConverter.GetBytes(bits[0]), 0, sizeof(int));
             destination.Write(BitConverter.GetBytes(bits[1]), 0, sizeof(int));
             destination.Write(BitConverter.GetBytes(bits[2]), 0, sizeof(int));
-            destination.Write(BitConverter.GetBytes(bits[4]), 0, sizeof(int));
+            destination.Write(BitConverter.GetBytes(bits[3]), 0, sizeof(int));
 #else
             Span<byte> buffer = stackalloc byte[4 * sizeof(int)];
             bool successful = BitConverter.TryWriteBytes(buffer[0..sizeof(int)], bits[0]);

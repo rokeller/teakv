@@ -38,7 +38,7 @@ partial class Driver<TKey, TValue> : IDisposable, IAsyncDisposable
         public async ValueTask DisposeAsync()
         {
             await Stream.FlushAsync().ConfigureAwaitLib();
-#if NETSTANDARD2_0
+#if NETSTANDARD
             Stream.Dispose();
 #else
             await Stream.DisposeAsync().ConfigureAwaitLib();

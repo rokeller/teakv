@@ -142,7 +142,7 @@ public partial class FileSegmentManager<TKey, TValue>
             // But let's only return segments for which we also find a data file.
             if (File.Exists(dataFilePath))
             {
-#if NETSTANDARD2_0
+#if NETSTANDARD
                 string baseFileName = Path
                     .GetFileNameWithoutExtension(dataFilePath);
                 long segmentId = Int64.Parse(

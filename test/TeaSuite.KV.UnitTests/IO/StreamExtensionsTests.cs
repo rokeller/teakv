@@ -8,9 +8,14 @@ public sealed class StreamExtensionsTests
     public void FillReadsUntilFull()
     {
         using Stream stream = CreateSequenceStream(3, 12, 255);
-        Span<byte> buffer = stackalloc byte[9];
 
+#if TestTargetsNetStandard
+        byte[] buffer = new byte[9];
+        StreamExtensions.Fill(stream, buffer, buffer.Length);
+#else
+        Span<byte> buffer = stackalloc byte[9];
         StreamExtensions.Fill(stream, buffer);
+#endif
 
         for (int i = 0; i < 9; i++)
         {
@@ -27,8 +32,13 @@ public sealed class StreamExtensionsTests
 
         EndOfStreamException ex = Assert.Throws<EndOfStreamException>(() =>
         {
+#if TestTargetsNetStandard
+            byte[] buffer = new byte[9];
+            StreamExtensions.Fill(stream, buffer, buffer.Length);
+#else
             Span<byte> buffer = stackalloc byte[9];
             StreamExtensions.Fill(stream, buffer);
+#endif
         });
 
         Assert.Equal("Expected at least 6 more bytes.", ex.Message);
@@ -39,9 +49,15 @@ public sealed class StreamExtensionsTests
     public async Task FillAsyncReadsUntilFull()
     {
         using Stream stream = CreateSequenceStream(33, 42, 250);
-        Memory<byte> buffer = new(new byte[9]);
 
+#if TestTargetsNetStandard
+        byte[] buf = new byte[9];
+        Memory<byte> buffer = new(buf);
+        await StreamExtensions.FillAsync(stream, buf, buf.Length, default);
+#else
+        Memory<byte> buffer = new(new byte[9]);
         await StreamExtensions.FillAsync(stream, buffer, default);
+#endif
 
         for (int i = 0; i < 9; i++)
         {
@@ -59,8 +75,13 @@ public sealed class StreamExtensionsTests
         EndOfStreamException ex = await Assert.ThrowsAsync<EndOfStreamException>(
             async () =>
             {
+#if TestTargetsNetStandard
+                byte[] buffer = new byte[9];
+                await StreamExtensions.FillAsync(stream, buffer, buffer.Length, default);
+#else
                 Memory<byte> buffer = new(new byte[9]);
                 await StreamExtensions.FillAsync(stream, buffer, default);
+#endif
             });
 
         Assert.Equal("Expected at least 6 more bytes.", ex.Message);

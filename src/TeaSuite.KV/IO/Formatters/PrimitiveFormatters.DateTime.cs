@@ -21,7 +21,7 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask<DateTime> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             byte[] buffer = new byte[sizeof(long)];
             source.Fill(buffer, buffer.Length);
             long ticks = BitConverter.ToInt64(buffer, 0);
@@ -43,7 +43,7 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask WriteAsync(DateTime value, Stream destination, CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             byte[] buffer = BitConverter.GetBytes(value.ToUniversalTime().Ticks);
             destination.Write(buffer, 0, buffer.Length);
 #else

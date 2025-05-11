@@ -21,7 +21,7 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask<ulong> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             byte[] buffer = new byte[sizeof(ulong)];
             source.Fill(buffer, sizeof(ulong));
             return new(BitConverter.ToUInt64(buffer, 0));
@@ -42,9 +42,8 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask WriteAsync(ulong value, Stream destination, CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
-            byte[] buffer = new byte[sizeof(ulong)];
-            BitConverter.GetBytes(value);
+#if NETSTANDARD
+            byte[] buffer = BitConverter.GetBytes(value);
             destination.Write(buffer, 0, buffer.Length);
 #else
             Span<byte> buffer = stackalloc byte[sizeof(ulong)];

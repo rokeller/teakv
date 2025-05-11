@@ -21,7 +21,7 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask<double> ReadAsync(Stream source, CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             byte[] buffer = new byte[sizeof(double)];
             source.Fill(buffer, buffer.Length);
             return new(BitConverter.ToDouble(buffer, 0));
@@ -42,7 +42,7 @@ partial class PrimitiveFormatters
         /// <inheritdoc/>
         public ValueTask WriteAsync(double value, Stream destination, CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             byte[] buffer = BitConverter.GetBytes(value);
             destination.Write(buffer, 0, buffer.Length);
 #else

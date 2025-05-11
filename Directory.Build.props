@@ -2,16 +2,26 @@
 <Project>
     <PropertyGroup>
         <Nullable>enable</Nullable>
-        <LibraryTargetFrameworks>net8.0;netstandard2.1</LibraryTargetFrameworks>
-        <TestTargetFrameworks>net8.0</TestTargetFrameworks>
+        <LibraryTargetFrameworks>net8.0;netstandard2.0</LibraryTargetFrameworks>
+        <NetStandardTestTargetFramework>net6.0</NetStandardTestTargetFramework>
+        <TestTargetFrameworks>net8.0;$(NetStandardTestTargetFramework)</TestTargetFrameworks>
         <ExampleAppTargetFramework>net8.0</ExampleAppTargetFramework>
         <ExampleAppSystemDependencyVersionWildcard>8.0.*</ExampleAppSystemDependencyVersionWildcard>
+    </PropertyGroup>
+
+    <!-- The following property group must be in-sync with the target framework designated for
+    testing netstandard -->
+    <PropertyGroup Condition="'$(TargetFramework)' == '$(NetStandardTestTargetFramework)'">
+        <TestTargetsNetStandard>true</TestTargetsNetStandard>
+        <DefineConstants>$(DefineConstants);TestTargetsNetStandard</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup Label="SystemDependencyVersions">
         <!-- Use 8.0.x assemblies as the minimum for dependencies -->
         <SystemDependencyVersionWildcard>8.0.*</SystemDependencyVersionWildcard>
-        <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'netstandard2.0'">8.0.*</SystemDependencyVersionWildcard>
+        <SystemDependencyVersionWildcard
+            Condition="'$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'netstandard2.0'"
+            >8.0.*</SystemDependencyVersionWildcard>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -43,6 +53,6 @@
     </PropertyGroup>
 
     <ItemGroup Label="NuSpec">
-        <None Include="$(MSBuildThisFileDirectory)docs/README.md" Pack="true" PackagePath="\"/>
+        <None Include="$(MSBuildThisFileDirectory)docs/README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 </Project>

@@ -90,7 +90,7 @@ public static partial class StreamExtensions
         }
     }
 
-#if NETSTANDARD2_0
+#if NETSTANDARD
     /// <summary>
     /// Skips the given number of bytes on the <see cref="Stream"/>.
     /// </summary>
@@ -120,7 +120,7 @@ public static partial class StreamExtensions
     }
 #endif
 
-#if !NETSTANDARD2_0
+#if !NETSTANDARD
     /// <summary>
     /// Fills the given <paramref name="buffer"/> with data from the <see cref="Stream"/>
     /// </summary>

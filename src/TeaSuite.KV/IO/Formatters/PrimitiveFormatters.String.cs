@@ -37,7 +37,7 @@ partial class PrimitiveFormatters
             Stream source,
             CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             byte[] buffer = new byte[sizeof(int)];
             source.Fill(buffer, buffer.Length);
             int byteLength = BitConverter.ToInt32(buffer, 0);
@@ -65,7 +65,7 @@ partial class PrimitiveFormatters
             Stream source,
             CancellationToken cancellationToken)
         {
-#if NETSTANDARD2_0
+#if NETSTANDARD
             byte[] buffer = new byte[sizeof(int)];
             source.Fill(buffer, buffer.Length);
             int remaining = BitConverter.ToInt32(buffer, 0);
@@ -85,7 +85,7 @@ partial class PrimitiveFormatters
             CancellationToken cancellationToken)
         {
             int byteLength = encoding.GetByteCount(value);
-#if NETSTANDARD2_0
+#if NETSTANDARD
             byte[] buffer = BitConverter.GetBytes(byteLength);
             destination.Write(buffer, 0, buffer.Length);
 #else
@@ -97,7 +97,7 @@ partial class PrimitiveFormatters
             destination.Write(buffer);
 #endif
 
-#if NETSTANDARD2_0
+#if NETSTANDARD
             return WriteWithPoolAsync(destination, value, byteLength);
 #else
             if (byteLength <= MaxStackAlloc)
