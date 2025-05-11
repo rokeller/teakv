@@ -56,7 +56,6 @@ partial class PrimitiveFormatters
             else
             {
                 return new(ReadWithPoolAsync(source, byteLength, cancellationToken));
-                return new(ReadWithPoolAsync(source, byteLength, cancellationToken));
             }
 #endif
         }
@@ -140,27 +139,6 @@ partial class PrimitiveFormatters
             CancellationToken cancellationToken)
         {
             byte[] byteBuffer = ArrayPool<byte>.Shared.Rent(length);
-            try
-            {
-                await source.FillAsync(byteBuffer, length, cancellationToken).ConfigureAwaitLib();
-                return encoding.GetString(byteBuffer, 0, length);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(byteBuffer);
-            }
-        }
-
-        private ValueTask WriteWithPoolAsync(
-            Stream destination,
-            string value,
-            int byteLength)
-        {
-            byte[] byteBuffer = ArrayPool<byte>.Shared.Rent(byteLength);
-            try
-            {
-                encoding.GetBytes(value, 0, value.Length, byteBuffer, 0);
-                return new(destination.WriteAsync(byteBuffer, 0, byteLength));
             try
             {
                 await source.FillAsync(byteBuffer, length, cancellationToken).ConfigureAwaitLib();
