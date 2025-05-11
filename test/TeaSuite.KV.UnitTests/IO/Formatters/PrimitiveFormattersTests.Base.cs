@@ -6,7 +6,7 @@ partial class PrimitiveFormattersTests
 {
     public abstract class FormatterTestsBase<T>
     {
-        private readonly IFormatter<T> formatter;
+        protected readonly IFormatter<T> formatter;
 
         protected FormatterTestsBase(IFormatter<T> formatter)
         {

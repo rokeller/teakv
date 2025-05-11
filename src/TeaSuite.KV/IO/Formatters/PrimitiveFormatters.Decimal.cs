@@ -50,6 +50,7 @@ partial class PrimitiveFormatters
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             source.Skip(4 * sizeof(int));
+            source.Skip(4 * sizeof(int));
             return default;
         }
 
@@ -57,6 +58,7 @@ partial class PrimitiveFormatters
         public ValueTask WriteAsync(decimal value, Stream destination, CancellationToken cancellationToken)
         {
             int[] bits = Decimal.GetBits(value);
+            Debug.Assert(bits.Length == 4, "There must be four 32-bit integers.");
             Debug.Assert(bits.Length == 4, "There must be four 32-bit integers.");
 
 #if NETSTANDARD

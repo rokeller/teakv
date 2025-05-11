@@ -49,7 +49,6 @@ partial class PrimitiveFormatters
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             bool successful = BitConverter.TryWriteBytes(buffer, value);
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
-
             destination.Write(buffer);
 #endif
             return default;

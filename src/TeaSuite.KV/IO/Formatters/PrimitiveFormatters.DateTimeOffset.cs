@@ -39,6 +39,7 @@ partial class PrimitiveFormatters
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             source.Skip(2 * sizeof(long));
+            source.Skip(2 * sizeof(long));
             return default;
         }
 
@@ -56,7 +57,6 @@ partial class PrimitiveFormatters
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
             successful = BitConverter.TryWriteBytes(buffer[sizeof(long)..], value.Offset.Ticks);
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
-
             destination.Write(buffer);
 #endif
             return default;

@@ -6,6 +6,10 @@ build:
 examples:
 	dotnet build Examples.sln
 
+.PHONY: examples.run.shorturl
+examples.run.shorturl:
+	dotnet run --project examples/ShortUrl
+
 .PHONY: clean
 clean:
 	dotnet clean TeaSuite.KV.sln

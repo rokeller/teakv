@@ -178,3 +178,4 @@ partial class DefaultKeyValueStoreTests
         Assert.IsType<MergingEnumerator<StoreEntry<int, int>>>(result);
     }
 }
+

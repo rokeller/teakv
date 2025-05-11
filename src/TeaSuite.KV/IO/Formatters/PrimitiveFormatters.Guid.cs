@@ -40,6 +40,7 @@ partial class PrimitiveFormatters
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             source.Skip(GuidSize);
+            source.Skip(GuidSize);
             return default;
         }
 
@@ -53,7 +54,6 @@ partial class PrimitiveFormatters
             Span<byte> buffer = stackalloc byte[GuidSize];
             bool successful = value.TryWriteBytes(buffer);
             Debug.Assert(successful, "Writing the value to the byte buffer must have been successful.");
-
             destination.Write(buffer);
 #endif
             return default;

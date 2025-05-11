@@ -36,6 +36,7 @@ partial class PrimitiveFormatters
         public ValueTask SkipReadAsync(Stream source, CancellationToken cancellationToken)
         {
             source.Skip(sizeof(uint));
+            source.Skip(sizeof(uint));
             return default;
         }
 
