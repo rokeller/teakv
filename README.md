@@ -33,6 +33,14 @@ any given time, so you don't need to worry about locking access to the Key-Value
 store yourself. Read more about the use of a locking policy below in
 [Locking](#locking).
 
+Starting with version 0.5, the Nuget package now also targets `netstandard2.0`
+thus supporting .Net Framework targets. For `netstandard2.0`, some parts of the
+Tea.KV implementation are less efficient due to lack of language support. This
+affects primarily the use of `stackalloc` which is not supported, which for
+`netstandard2.0` is replaced with ordinary array allocation on the heap, thus
+adding more work for the garbage collector. It is recommended that you target
+`net8.0` or higher whenever possible.
+
 ## Usage Examples
 
 ### `int`/`string` Key-Value Store on local disk
