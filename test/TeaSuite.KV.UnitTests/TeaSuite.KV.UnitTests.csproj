@@ -22,13 +22,18 @@
     <PackageReference Include="AutoFixture.AutoMoq" Version="4.*" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TestTargetsNetStandard)' == 'true'">
+  <ItemGroup Label="netstandard target" Condition="'$(TestTargetsNetStandard)' == 'true'">
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(SystemDependencyVersionWildcard)" />
+    <!-- Set the teakv library project referece to target the designated netstandard target -->
+    <ProjectReference Include="..\..\src\TeaSuite.KV\TeaSuite.KV.csproj">
+      <SetTargetFramework>TargetFramework=$(NetStandardTarget)</SetTargetFramework>
+    </ProjectReference>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="netX targets" Condition="'$(TestTargetsNetStandard)' != 'true'">
     <ProjectReference Include="..\..\src\TeaSuite.KV\TeaSuite.KV.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="TestData/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

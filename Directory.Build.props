@@ -2,11 +2,13 @@
 <Project>
     <PropertyGroup>
         <Nullable>enable</Nullable>
-        <LibraryTargetFrameworks>net8.0;netstandard2.0</LibraryTargetFrameworks>
-        <NetStandardTestTargetFramework>net6.0</NetStandardTestTargetFramework>
-        <TestTargetFrameworks>net8.0;$(NetStandardTestTargetFramework)</TestTargetFrameworks>
-        <ExampleAppTargetFramework>net8.0</ExampleAppTargetFramework>
-        <ExampleAppSystemDependencyVersionWildcard>8.0.*</ExampleAppSystemDependencyVersionWildcard>
+        <NetStandardTarget>netstandard2.0</NetStandardTarget>
+        <LibraryTargetFrameworks>net8.0;net10.0;$(NetStandardTarget)</LibraryTargetFrameworks>
+        <!-- Use the following target framework to test the netstandard targeted version of the library -->
+        <NetStandardTestTargetFramework>net9.0</NetStandardTestTargetFramework>
+        <TestTargetFrameworks>net8.0;net10.0;$(NetStandardTestTargetFramework)</TestTargetFrameworks>
+        <ExampleAppTargetFramework>net10.0</ExampleAppTargetFramework>
+        <ExampleAppSystemDependencyVersionWildcard>10.0.*</ExampleAppSystemDependencyVersionWildcard>
     </PropertyGroup>
 
     <!-- The following property group must be in-sync with the target framework designated for
@@ -17,11 +19,10 @@
     </PropertyGroup>
 
     <PropertyGroup Label="SystemDependencyVersions">
-        <!-- Use 8.0.x assemblies as the minimum for dependencies -->
+        <!-- Use 8.0.x assemblies as the minimum for dependencies of netstandard targets -->
         <SystemDependencyVersionWildcard>8.0.*</SystemDependencyVersionWildcard>
-        <SystemDependencyVersionWildcard
-            Condition="'$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'netstandard2.0'"
-            >8.0.*</SystemDependencyVersionWildcard>
+        <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net8.0'">8.0.*</SystemDependencyVersionWildcard>
+        <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net10.0'">10.0.*</SystemDependencyVersionWildcard>
     </PropertyGroup>
 
     <PropertyGroup>
