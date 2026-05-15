@@ -1,11 +1,11 @@
 version: 2
 updates:
-  - package-ecosystem: nuget
-    directory: /
-    schedule:
-      interval: daily
-      time: "06:10"
-      timezone: Europe/Zurich
+  # - package-ecosystem: nuget
+  #   directory: /
+  #   schedule:
+  #     interval: daily
+  #     time: "06:10"
+  #     timezone: Europe/Zurich
 
   - package-ecosystem: github-actions
     directory: /
