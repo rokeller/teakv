@@ -1,10 +1,10 @@
 .PHONY: build
 build:
-	dotnet build TeaSuite.KV.sln
+	dotnet build TeaSuite.KV.slnx
 
 .PHONY: examples
 examples:
-	dotnet build Examples.sln
+	dotnet build Examples.slnx
 
 .PHONY: examples.run.shorturl
 examples.run.shorturl:
@@ -12,22 +12,22 @@ examples.run.shorturl:
 
 .PHONY: clean
 clean:
-	dotnet clean TeaSuite.KV.sln
-	dotnet clean Examples.sln
+	dotnet clean TeaSuite.KV.slnx
+	dotnet clean Examples.slnx
 
 .PHONY: restore
 restore:
-	dotnet restore --force-evaluate TeaSuite.KV.sln
-	dotnet restore --force-evaluate Examples.sln
+	dotnet restore --force-evaluate TeaSuite.KV.slnx
+	dotnet restore --force-evaluate Examples.slnx
 
 .PHONY: test
 test:
-	dotnet test TeaSuite.KV.sln
+	dotnet test TeaSuite.KV.slnx
 
 .PHONY: coverage
 coverage:
 	rm -rf TestResults/Temp
-	dotnet test TeaSuite.KV.sln --collect:'XPlat Code Coverage' \
+	dotnet test TeaSuite.KV.slnx --collect:'XPlat Code Coverage' \
 		--results-directory TestResults/Temp
 	reportgenerator \
 		-reports:"TestResults/Temp/*/coverage.cobertura.xml"  \
@@ -37,4 +37,4 @@ coverage:
 
 .PHONY: pack
 pack:
-	dotnet pack TeaSuite.KV.sln --configuration Release --output packages/
+	dotnet pack TeaSuite.KV.slnx --configuration Release --output packages/

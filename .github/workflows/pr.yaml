@@ -30,17 +30,17 @@ jobs:
 
       - name: Restore dependencies
         run: |
-          dotnet restore TeaSuite.KV.sln
-          dotnet restore Examples.sln
+          dotnet restore TeaSuite.KV.slnx
+          dotnet restore Examples.slnx
 
       - name: Build
         run: |
-          dotnet build TeaSuite.KV.sln --no-restore
-          dotnet build Examples.sln --no-restore
+          dotnet build TeaSuite.KV.slnx --no-restore
+          dotnet build Examples.slnx --no-restore
 
       - name: Test
         run: |
-          dotnet test TeaSuite.KV.sln --no-build   \
+          dotnet test TeaSuite.KV.slnx --no-build   \
             --collect:'XPlat Code Coverage'        \
             --results-directory 'TestResults/Temp'
 

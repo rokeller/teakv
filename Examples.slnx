@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="examples/PeopleStore/PeopleStore.csproj" />
+  <Project Path="examples/ShortUrl/ShortUrl.csproj" />
+</Solution>

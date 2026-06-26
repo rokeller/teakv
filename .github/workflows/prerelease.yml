@@ -31,17 +31,17 @@ jobs:
 
       - name: Restore dependencies
         run: |
-          dotnet restore TeaSuite.KV.sln
-          dotnet restore Examples.sln
+          dotnet restore TeaSuite.KV.slnx
+          dotnet restore Examples.slnx
 
       - name: Build
         run: |
-          dotnet build TeaSuite.KV.sln --no-restore --configuration Release
-          dotnet build Examples.sln --no-restore --configuration Release
+          dotnet build TeaSuite.KV.slnx --no-restore --configuration Release
+          dotnet build Examples.slnx --no-restore --configuration Release
 
       - name: Test
         run: |
-          dotnet test TeaSuite.KV.sln --no-build --configuration Release  \
+          dotnet test TeaSuite.KV.slnx --no-build --configuration Release  \
             --collect:'XPlat Code Coverage'                               \
             --results-directory 'TestResults/Temp'
 
@@ -80,7 +80,7 @@ jobs:
 
       - name: Create NuGet Package
         run: |
-          dotnet pack TeaSuite.KV.sln --configuration Release --output packages/
+          dotnet pack TeaSuite.KV.slnx --configuration Release --output packages/
 
       - name: Publish NuGet Package
         run: |
