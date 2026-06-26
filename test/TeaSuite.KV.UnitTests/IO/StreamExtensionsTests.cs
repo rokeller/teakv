@@ -80,7 +80,7 @@ public sealed class StreamExtensionsTests
         using Stream stream = CreateSequenceStream(33, 42, 250);
         byte[] buffer = new byte[9];
 
-        await StreamExtensions.FillAsync(stream, buffer, buffer.Length, default);
+        await StreamExtensions.FillAsync(stream, buffer, buffer.Length, TestContext.Current.CancellationToken);
 
         for (int i = 0; i < 9; i++)
         {
@@ -98,10 +98,10 @@ public sealed class StreamExtensionsTests
 #if TestTargetsNetStandard
         byte[] buf = new byte[9];
         Memory<byte> buffer = new(buf);
-        await StreamExtensions.FillAsync(stream, buf, buf.Length, default);
+        await StreamExtensions.FillAsync(stream, buf, buf.Length, TestContext.Current.CancellationToken);
 #else
         Memory<byte> buffer = new(new byte[9]);
-        await StreamExtensions.FillAsync(stream, buffer, default);
+        await StreamExtensions.FillAsync(stream, buffer, TestContext.Current.CancellationToken);
 #endif
 
         for (int i = 0; i < 9; i++)
@@ -121,7 +121,7 @@ public sealed class StreamExtensionsTests
             async () =>
             {
                 byte[] buffer = new byte[9];
-                await StreamExtensions.FillAsync(stream, buffer, buffer.Length, default);
+                await StreamExtensions.FillAsync(stream, buffer, buffer.Length, TestContext.Current.CancellationToken);
             });
 
         Assert.Equal("Expected at least 6 more bytes.", ex.Message);
@@ -137,10 +137,10 @@ public sealed class StreamExtensionsTests
             {
 #if TestTargetsNetStandard
                 byte[] buffer = new byte[9];
-                await StreamExtensions.FillAsync(stream, buffer, buffer.Length, default);
+                await StreamExtensions.FillAsync(stream, buffer, buffer.Length, TestContext.Current.CancellationToken);
 #else
                 Memory<byte> buffer = new(new byte[9]);
-                await StreamExtensions.FillAsync(stream, buffer, default);
+                await StreamExtensions.FillAsync(stream, buffer, TestContext.Current.CancellationToken);
 #endif
             });
 

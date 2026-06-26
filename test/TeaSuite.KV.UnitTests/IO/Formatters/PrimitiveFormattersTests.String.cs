@@ -16,10 +16,10 @@ partial class PrimitiveFormattersTests
         {
             using MemoryStream memstr = new MemoryStream();
 
-            await formatter.WriteAsync(valueToWrite, memstr, default);
+            await formatter.WriteAsync(valueToWrite, memstr, TestContext.Current.CancellationToken);
 
             memstr.Position = 0;
-            string readValue = await formatter.ReadAsync(memstr, default);
+            string readValue = await formatter.ReadAsync(memstr, TestContext.Current.CancellationToken);
 
             Assert.Equal(valueToWrite, readValue);
         }
@@ -35,17 +35,17 @@ partial class PrimitiveFormattersTests
             using MemoryStream memstr = new MemoryStream();
 
             int stringLength = RandomNumberGenerator.GetInt32(0, 4 * 1024);
-            await new Int32Formatter().WriteAsync(stringLength, memstr, default);
+            await new Int32Formatter().WriteAsync(stringLength, memstr, TestContext.Current.CancellationToken);
             WriteRandom(stringLength, memstr);
             memstr.WriteByte(sentinel);
 
             memstr.Position = 0;
-            await formatter.SkipReadAsync(memstr, default);
+            await formatter.SkipReadAsync(memstr, TestContext.Current.CancellationToken);
             Assert.Equal(sentinel, memstr.ReadByte());
 
             using Stream nonSeekable = WrapNonSeekable(memstr);
             nonSeekable.Position = 0;
-            await formatter.SkipReadAsync(nonSeekable, default);
+            await formatter.SkipReadAsync(nonSeekable, TestContext.Current.CancellationToken);
             Assert.Equal(sentinel, nonSeekable.ReadByte());
         }
 

@@ -1,5 +1,5 @@
 using System.IO.MemoryMappedFiles;
-using AutoFixture.Xunit2;
+using AutoFixture.Xunit3;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -50,7 +50,7 @@ public sealed class MemoryMappedFileSegmentManagerTests
         };
 
         long entryCount = await segment.Driver.WriteEntriesAsync(
-            entries.GetEnumerator(), new StoreSettings(), default);
+            entries.GetEnumerator(), new StoreSettings(), TestContext.Current.CancellationToken);
         Assert.Equal(entries.Count, entryCount);
 
         (string indexFile, string dataFile) = GetFileNames(segmentId);
@@ -71,7 +71,7 @@ public sealed class MemoryMappedFileSegmentManagerTests
         Assert.True(File.Exists(indexFile));
         Assert.True(File.Exists(dataFile));
 
-        await manager.DeleteSegmentAsync(segmentId, default);
+        await manager.DeleteSegmentAsync(segmentId, TestContext.Current.CancellationToken);
 
         Assert.False(File.Exists(indexFile));
         Assert.False(File.Exists(dataFile));
@@ -88,7 +88,8 @@ public sealed class MemoryMappedFileSegmentManagerTests
 
         mockFormatter
             .SetupSequence(f => f.ReadKeyAsync(
-                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")), default))
+                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(0).ReturnsAsync(2).ThrowsAsync(new EndOfStreamException());
 
         Segment<int, int> readonlySeg = manager.MakeReadOnly(seg);
@@ -104,7 +105,8 @@ public sealed class MemoryMappedFileSegmentManagerTests
     {
         var indexReadSeq = mockFormatter
             .SetupSequence(f => f.ReadKeyAsync(
-                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")), default));
+                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")),
+                It.IsAny<CancellationToken>()));
         string indexFile;
         string dataFile;
 
@@ -146,22 +148,26 @@ public sealed class MemoryMappedFileSegmentManagerTests
         CopyTestData("segment_template.data", dataFile);
 
         mockFormatter
-            .SetupSequence(f => f.ReadKeyAsync(It.IsAny<FileStream>(), default))
+            .SetupSequence(f => f.ReadKeyAsync(It.IsAny<FileStream>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0).ReturnsAsync(EntryId).ThrowsAsync(new EndOfStreamException());
         mockFormatter
-            .SetupSequence(f => f.ReadKeyAsync(It.Is<MemoryMappedViewStream>(stream =>
-                stream.PointerOffset == 0x08 && /* the offset of the entry */
-                stream.Position == 0x04 /* the last entry flags was read */), default))
+            .SetupSequence(f => f.ReadKeyAsync(
+                It.Is<MemoryMappedViewStream>(stream =>
+                    stream.PointerOffset == 0x08 && /* the offset of the entry */
+                    stream.Position == 0x04 /* the last entry flags was read */),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntryId).ThrowsAsync(new EndOfStreamException());
         mockFormatter
-            .SetupSequence(f => f.ReadValueAsync(It.Is<MemoryMappedViewStream>(stream =>
-                stream.PointerOffset == 0x08 && /* the offset of the entry */
-                stream.Position == 0x04 /* the last entry flags was read */), default))
+            .SetupSequence(f => f.ReadValueAsync(
+                It.Is<MemoryMappedViewStream>(stream =>
+                    stream.PointerOffset == 0x08 && /* the offset of the entry */
+                    stream.Position == 0x04 /* the last entry flags was read */),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(entryValue).ThrowsAsync(new EndOfStreamException());
 
         // Get an actual readable segment.
         seg = manager.MakeReadOnly(seg);
-        StoreEntry<int, int>? entry = await seg.Driver.GetEntryAsync(EntryId, default);
+        StoreEntry<int, int>? entry = await seg.Driver.GetEntryAsync(EntryId, TestContext.Current.CancellationToken);
 
         Assert.NotNull(entry);
         Assert.Equal(EntryId, entry.Value.Key);
@@ -176,7 +182,7 @@ public sealed class MemoryMappedFileSegmentManagerTests
             await driver.WriteEntriesAsync(
                 Enumerable.Empty<StoreEntry<int, int>>().GetEnumerator(),
                 new StoreSettings(),
-                default);
+                TestContext.Current.CancellationToken);
         }
 
         Segment<int, int> seg = manager.CreateNewSegment(segmentId);

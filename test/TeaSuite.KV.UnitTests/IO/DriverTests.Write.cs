@@ -16,7 +16,7 @@ partial class DriverTests
 
         Assert.NotNull(driver);
         InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await driver.WriteEntriesAsync(mockEnumerator.Object, settings, default));
+            async () => await driver.WriteEntriesAsync(mockEnumerator.Object, settings, TestContext.Current.CancellationToken));
 
         Assert.Equal("Cannot write in a non-writable segment.", ex.Message);
     }
@@ -31,7 +31,7 @@ partial class DriverTests
         Assert.NotNull(driver);
         driver.Dispose();
         await Assert.ThrowsAsync<ObjectDisposedException>(
-            () => driver.WriteEntriesAsync(mockEnumerator.Object, settings, default));
+            () => driver.WriteEntriesAsync(mockEnumerator.Object, settings, TestContext.Current.CancellationToken));
         mockSegmentWriter.Verify(w => w.Dispose(), Times.Once);
 
         // Prepare for async dispose.
@@ -40,7 +40,7 @@ partial class DriverTests
         Assert.NotNull(driver);
         await driver.DisposeAsync();
         await Assert.ThrowsAsync<ObjectDisposedException>(
-            () => driver.WriteEntriesAsync(mockEnumerator.Object, settings, default));
+            () => driver.WriteEntriesAsync(mockEnumerator.Object, settings, TestContext.Current.CancellationToken));
         mockSegmentWriter.Verify(w => w.DisposeAsync(), Times.Once);
     }
 
@@ -72,50 +72,50 @@ partial class DriverTests
             .Select(i => i % 2 == 0 ? new(keyFunc(i), i) :
                                       StoreEntry<int, int>.Delete(keyFunc(i))));
         mockSegmentWriter
-            .Setup(w => w.OpenIndexForWriteAsync(default))
+            .Setup(w => w.OpenIndexForWriteAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(indexStream);
         mockSegmentWriter
-            .Setup(w => w.OpenDataForWriteAsync(default))
+            .Setup(w => w.OpenDataForWriteAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(dataStream);
 
         mockEntryFormatter
             .Setup(f => f.WriteKeyAsync(
-                It.IsIn<int>(indexEnum.Select(keyFunc)), indexStream, default))
+                It.IsIn<int>(indexEnum.Select(keyFunc)), indexStream, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask());
         mockEntryFormatter
             .Setup(f => f.WriteKeyAsync(
-                It.IsIn<int>(indexEnum.Select(keyFunc)), dataStream, default))
+                It.IsIn<int>(indexEnum.Select(keyFunc)), dataStream, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask());
         mockEntryFormatter
             .Setup(f => f.WriteValueAsync(
                 It.IsIn<int>(Enumerable.Range(0, (entryCount + 1) / 2)
-                    .Select(i => i * 2)), dataStream, default))
+                    .Select(i => i * 2)), dataStream, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask());
 
         InitWriteOnlyDriver();
         Assert.NotNull(driver);
 
         long numWritten = await driver.WriteEntriesAsync(
-            entries.GetEnumerator(), settings, default);
+            entries.GetEnumerator(), settings, TestContext.Current.CancellationToken);
         Assert.Equal((long)entryCount, numWritten);
 
         if (indexEveryEntry)
         {
             mockEntryFormatter.Verify(
-                f => f.WriteKeyAsync(It.IsAny<int>(), indexStream, default),
+                f => f.WriteKeyAsync(It.IsAny<int>(), indexStream, It.IsAny<CancellationToken>()),
                 Times.Exactly(entryCount));
         }
         else
         {
             mockEntryFormatter.Verify(
-                f => f.WriteKeyAsync(It.IsAny<int>(), indexStream, default),
+                f => f.WriteKeyAsync(It.IsAny<int>(), indexStream, It.IsAny<CancellationToken>()),
                 Times.Exactly(Math.Min(2, entryCount)));
         }
 
         mockEntryFormatter.Verify(f => f.WriteKeyAsync(
-            It.IsAny<int>(), dataStream, default), Times.Exactly(entryCount));
+            It.IsAny<int>(), dataStream, It.IsAny<CancellationToken>()), Times.Exactly(entryCount));
         mockEntryFormatter.Verify(
-            f => f.WriteValueAsync(It.IsAny<int>(), dataStream, default),
+            f => f.WriteValueAsync(It.IsAny<int>(), dataStream, It.IsAny<CancellationToken>()),
             Times.Exactly((entryCount + 1) / 2));
 
         byte[] actual = indexStream.ToArray();

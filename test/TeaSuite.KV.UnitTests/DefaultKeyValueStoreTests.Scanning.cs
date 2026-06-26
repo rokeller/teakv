@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Reflection;
-using AutoFixture.Xunit2;
+using AutoFixture.Xunit3;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TeaSuite.KV.IO;

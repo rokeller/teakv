@@ -1,5 +1,5 @@
 using System.Collections;
-using AutoFixture.Xunit2;
+using AutoFixture.Xunit3;
 using Moq;
 using Moq.Language;
 
