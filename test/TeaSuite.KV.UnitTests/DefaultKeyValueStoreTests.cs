@@ -1,4 +1,4 @@
-using AutoFixture.Xunit2;
+using AutoFixture.Xunit3;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -243,7 +243,7 @@ public sealed partial class DefaultKeyValueStoreTests
             .Callback(() => oldStoreValuesRead.Wait())
             .Returns(
                 (Segment<int, int> segment) => CreateSegment(
-                    segment.Id, new StoreEntry<int,int>(-1, -1)));
+                    segment.Id, new StoreEntry<int, int>(-1, -1)));
 
         SemaphoreSlim waitForPersist = new(0, 1);
         mockMemStore.Setup(s => s.Set(It.Is<StoreEntry<int, int>>(
@@ -281,7 +281,7 @@ public sealed partial class DefaultKeyValueStoreTests
             .Returns(() => utcNow.AddMilliseconds(Interlocked.Increment(ref msAdded)));
 
         store.Set(key1, expectedValue1);
-        waitForPersist.Wait();
+        waitForPersist.Wait(TestContext.Current.CancellationToken);
         store.Set(key2, expectedValue2);
 
         // A TryGet now will first look in mockMemStore2, and if that fails, it
@@ -307,8 +307,8 @@ public sealed partial class DefaultKeyValueStoreTests
         Assert.Equal(expectedValue2, actualValue2);
         oldStoreValuesRead.Release();
 
-        segmentMadeReadOnly.Wait();
-        await Task.Delay(TimeSpan.FromMilliseconds(10));
+        segmentMadeReadOnly.Wait(TestContext.Current.CancellationToken);
+        await Task.Delay(TimeSpan.FromMilliseconds(10), TestContext.Current.CancellationToken);
         // The next value would be read from the newly added read-only segment.
         Assert.True(store.TryGet(-1, out int actualValueFromSegment));
         Assert.Equal(-1, actualValueFromSegment);
@@ -327,7 +327,7 @@ public sealed partial class DefaultKeyValueStoreTests
             .ToArray());
         // Segment 2: entries for keys 0,3,6,9; all have value 2.
         Segment<int, int> seg2 = CreateSegment(2, Enumerable.Range(0, 4)
-            .Select(i => new StoreEntry<int,int>(i * 3, 2)).ToArray());
+            .Select(i => new StoreEntry<int, int>(i * 3, 2)).ToArray());
 
         Segment<int, int> newSegment = default;
         Mock<IEntryFormatter<int, int>>? mockFormatter = default;
@@ -367,8 +367,8 @@ public sealed partial class DefaultKeyValueStoreTests
 
         store.Merge();
 
-        newSegmentMadeReadOnly.Wait();
-        await Task.Delay(TimeSpan.FromMilliseconds(1));
+        newSegmentMadeReadOnly.Wait(TestContext.Current.CancellationToken);
+        await Task.Delay(TimeSpan.FromMilliseconds(1), TestContext.Current.CancellationToken);
         Assert.NotNull(mockFormatter);
         Assert.NotNull(writerContext.IndexStream);
         Assert.NotNull(writerContext.DataStream);

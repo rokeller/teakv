@@ -20,7 +20,7 @@ partial class PrimitiveFormattersTests
         {
             using MemoryStream memstr = new();
             EndOfStreamException ex = await Assert.ThrowsAsync<EndOfStreamException>(
-                () => formatter.ReadAsync(memstr, default).AsTask());
+                () => formatter.ReadAsync(memstr, TestContext.Current.CancellationToken).AsTask());
 
             Assert.Equal("Expected at least 1 more byte.", ex.Message);
         }
@@ -30,7 +30,7 @@ partial class PrimitiveFormattersTests
         {
             using MemoryStream memstr = new();
             EndOfStreamException ex = await Assert.ThrowsAsync<EndOfStreamException>(
-                () => formatter.SkipReadAsync(memstr, default).AsTask());
+                () => formatter.SkipReadAsync(memstr, TestContext.Current.CancellationToken).AsTask());
 
             Assert.Equal("Expected at least 1 more byte.", ex.Message);
         }

@@ -66,14 +66,15 @@ public sealed class ReaderWriterLockingPolicyTests
                     Interlocked.Increment(ref readers);
                     isReading.Release();
                     finishReading.Wait();
-                };
+                }
+                ;
                 Interlocked.Decrement(ref readers);
-            });
+            }, TestContext.Current.CancellationToken);
         }
 
         for (int i = 0; i < numReadLocks; i++)
         {
-            isReading.Wait();
+            isReading.Wait(TestContext.Current.CancellationToken);
         }
         Assert.Equal(numReadLocks, Interlocked.Read(ref readers));
         Assert.Equal(0, Interlocked.Read(ref writers));
@@ -92,11 +93,11 @@ public sealed class ReaderWriterLockingPolicyTests
                 finishWrite.Wait();
             }
             Interlocked.Decrement(ref writers);
-        });
+        }, TestContext.Current.CancellationToken);
 
         startWrite.Set();
         finishReading.Release(numReadLocks);
-        isWriting.Wait();
+        isWriting.Wait(TestContext.Current.CancellationToken);
         Assert.Equal(1, Interlocked.Read(ref writers));
         finishWrite.Set();
 

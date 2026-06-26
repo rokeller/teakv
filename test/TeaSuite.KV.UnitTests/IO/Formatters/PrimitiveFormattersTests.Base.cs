@@ -39,12 +39,12 @@ partial class PrimitiveFormattersTests
             memstr.WriteByte(sentinel);
 
             memstr.Position = 0;
-            await formatter.SkipReadAsync(memstr, default);
+            await formatter.SkipReadAsync(memstr, TestContext.Current.CancellationToken);
             Assert.Equal(sentinel, memstr.ReadByte());
 
             using Stream nonSeekable = WrapNonSeekable(memstr);
             nonSeekable.Position = 0;
-            await formatter.SkipReadAsync(nonSeekable, default);
+            await formatter.SkipReadAsync(nonSeekable, TestContext.Current.CancellationToken);
             Assert.Equal(sentinel, nonSeekable.ReadByte());
         }
 

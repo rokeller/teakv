@@ -20,10 +20,10 @@ public sealed class DefaultEntryFormatterTests
         using MemoryStream memstr = new();
 
         mockStringFormatter
-            .Setup(f => f.ReadAsync(memstr, default))
+            .Setup(f => f.ReadAsync(memstr, It.IsAny<CancellationToken>()))
             .ReturnsAsync("abc");
 
-        string key = await formatter.ReadKeyAsync(memstr, default);
+        string key = await formatter.ReadKeyAsync(memstr, TestContext.Current.CancellationToken);
         Assert.Equal("abc", key);
 
         mockStringFormatter.Verify(
@@ -38,10 +38,10 @@ public sealed class DefaultEntryFormatterTests
 
         int expected = RandomNumberGenerator.GetInt32(Int32.MaxValue);
         mockInt32Formatter
-            .Setup(f => f.ReadAsync(memstr, default))
+            .Setup(f => f.ReadAsync(memstr, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
 
-        int value = await formatter.ReadValueAsync(memstr, default);
+        int value = await formatter.ReadValueAsync(memstr, TestContext.Current.CancellationToken);
         Assert.Equal(expected, value);
 
         mockInt32Formatter.Verify(
@@ -56,10 +56,10 @@ public sealed class DefaultEntryFormatterTests
 
         int expected = RandomNumberGenerator.GetInt32(Int32.MaxValue);
         mockInt32Formatter
-            .Setup(f => f.SkipReadAsync(memstr, default))
+            .Setup(f => f.SkipReadAsync(memstr, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask());
 
-        await formatter.SkipReadValueAsync(memstr, default);
+        await formatter.SkipReadValueAsync(memstr, TestContext.Current.CancellationToken);
 
         mockInt32Formatter.Verify(
             f => f.SkipReadAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()),
@@ -72,10 +72,10 @@ public sealed class DefaultEntryFormatterTests
         using MemoryStream memstr = new();
 
         mockStringFormatter
-            .Setup(f => f.WriteAsync("asdf", memstr, default))
+            .Setup(f => f.WriteAsync("asdf", memstr, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask());
 
-        await formatter.WriteKeyAsync("asdf", memstr, default);
+        await formatter.WriteKeyAsync("asdf", memstr, TestContext.Current.CancellationToken);
 
         mockStringFormatter.Verify(
             f => f.WriteAsync(
@@ -91,10 +91,10 @@ public sealed class DefaultEntryFormatterTests
         using MemoryStream memstr = new();
 
         mockInt32Formatter
-            .Setup(f => f.WriteAsync(345, memstr, default))
+            .Setup(f => f.WriteAsync(345, memstr, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask());
 
-        await formatter.WriteValueAsync(345, memstr, default);
+        await formatter.WriteValueAsync(345, memstr, TestContext.Current.CancellationToken);
 
         mockInt32Formatter.Verify(
             f => f.WriteAsync(

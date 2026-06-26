@@ -1,4 +1,4 @@
-using AutoFixture.Xunit2;
+using AutoFixture.Xunit3;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -49,7 +49,7 @@ public sealed class FileSegmentManagerTests
         };
 
         long entryCount = await segment.Driver.WriteEntriesAsync(
-            entries.GetEnumerator(), new StoreSettings(), default);
+            entries.GetEnumerator(), new StoreSettings(), TestContext.Current.CancellationToken);
         Assert.Equal(entries.Count, entryCount);
 
         (string indexFile, string dataFile) = GetFileNames(segmentId);
@@ -70,7 +70,7 @@ public sealed class FileSegmentManagerTests
         Assert.True(File.Exists(indexFile));
         Assert.True(File.Exists(dataFile));
 
-        await manager.DeleteSegmentAsync(segmentId, default);
+        await manager.DeleteSegmentAsync(segmentId, TestContext.Current.CancellationToken);
 
         Assert.False(File.Exists(indexFile));
         Assert.False(File.Exists(dataFile));
@@ -87,7 +87,7 @@ public sealed class FileSegmentManagerTests
 
         mockFormatter
             .SetupSequence(f => f.ReadKeyAsync(
-                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")), default))
+                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0).ReturnsAsync(2).ThrowsAsync(new EndOfStreamException());
 
         Segment<int, int> readonlySeg = manager.MakeReadOnly(seg);
@@ -103,7 +103,7 @@ public sealed class FileSegmentManagerTests
     {
         var indexReadSeq = mockFormatter
             .SetupSequence(f => f.ReadKeyAsync(
-                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")), default));
+                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")), It.IsAny<CancellationToken>()));
         string indexFile;
         string dataFile;
 
@@ -146,20 +146,24 @@ public sealed class FileSegmentManagerTests
 
         mockFormatter
             .SetupSequence(f => f.ReadKeyAsync(
-                It.Is<FileStream>(stream => stream.Name.EndsWith(".index")), default))
+                It.Is<FileStream>(
+                    stream => stream.Name.EndsWith(".index")),
+                    It.IsAny<CancellationToken>()))
             .ReturnsAsync(0).ReturnsAsync(2).ThrowsAsync(new EndOfStreamException());
         mockFormatter
-            .SetupSequence(f => f.ReadKeyAsync(It.Is<FileStream>(stream =>
-                stream.Name.EndsWith(".data") && stream.Position == 0x0c /* the last entry flags was read */), default))
+            .SetupSequence(f => f.ReadKeyAsync(
+                It.Is<FileStream>(stream => stream.Name.EndsWith(".data") && stream.Position == 0x0c /* the last entry flags was read */),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(2).ThrowsAsync(new EndOfStreamException());
         mockFormatter
-            .SetupSequence(f => f.ReadValueAsync(It.Is<FileStream>(stream =>
-                stream.Name.EndsWith(".data") && stream.Position == 0x0c /* the last entry flags was read */), default))
+            .SetupSequence(f => f.ReadValueAsync(
+                It.Is<FileStream>(stream =>stream.Name.EndsWith(".data") && stream.Position == 0x0c /* the last entry flags was read */),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(entryValue).ThrowsAsync(new EndOfStreamException());
 
         // Get an actual readable segment.
         seg = manager.MakeReadOnly(seg);
-        StoreEntry<int, int>? entry = await seg.Driver.GetEntryAsync(2, default);
+        StoreEntry<int, int>? entry = await seg.Driver.GetEntryAsync(2, TestContext.Current.CancellationToken);
 
         Assert.NotNull(entry);
         Assert.Equal(2, entry.Value.Key);
@@ -174,7 +178,7 @@ public sealed class FileSegmentManagerTests
             await driver.WriteEntriesAsync(
                 Enumerable.Empty<StoreEntry<int, int>>().GetEnumerator(),
                 new StoreSettings(),
-                default);
+                TestContext.Current.CancellationToken);
         }
 
         Segment<int, int> seg = manager.CreateNewSegment(segmentId);

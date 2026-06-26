@@ -14,7 +14,7 @@ partial class DriverTests
             SegmentMetadata.CurrentVersion);
 
         mockSegmentReader
-            .Setup(r => r.OpenIndexForReadAsync(default))
+            .Setup(r => r.OpenIndexForReadAsync(It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<Stream>(indexStream));
 
         NotSupportedException ex = Assert.Throws<NotSupportedException>(
@@ -23,7 +23,9 @@ partial class DriverTests
             $"The machine is {(BitConverter.IsLittleEndian ? "little" : "big")} endian but the segment is not.",
             ex.Message);
 
-        mockSegmentReader.Verify(r => r.OpenIndexForReadAsync(default), Times.Once);
+        mockSegmentReader.Verify(
+            r => r.OpenIndexForReadAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Theory]
@@ -34,7 +36,7 @@ partial class DriverTests
         using Stream indexStream = CreateIndexStream(invertLittleEndian: false, version);
 
         mockSegmentReader
-            .Setup(r => r.OpenIndexForReadAsync(default))
+            .Setup(r => r.OpenIndexForReadAsync(It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<Stream>(indexStream));
 
         NotSupportedException ex = Assert.Throws<NotSupportedException>(
@@ -43,7 +45,9 @@ partial class DriverTests
             $"Segments of version {version} are not supported.",
             ex.Message);
 
-        mockSegmentReader.Verify(r => r.OpenIndexForReadAsync(default), Times.Once);
+        mockSegmentReader.Verify(
+            r => r.OpenIndexForReadAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Theory]
@@ -87,7 +91,9 @@ partial class DriverTests
             new(numIndexEntries - 1, numIndexEntries, (numIndexEntries - 1) * 4),
             driver.LastIndexEntry);
 
-        mockSegmentReader.Verify(r => r.OpenIndexForReadAsync(default), Times.Once);
+        mockSegmentReader.Verify(
+            r => r.OpenIndexForReadAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
         mockEntryFormatter.Verify(
             f => f.ReadKeyAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()),
             Times.Exactly(numIndexEntries + 1));
@@ -100,7 +106,7 @@ partial class DriverTests
 
         Assert.NotNull(driver);
         InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await driver.GetEntryAsync(123, default));
+            async () => await driver.GetEntryAsync(123, TestContext.Current.CancellationToken));
 
         Assert.Equal("Cannot read in a non-readable segment.", ex.Message);
     }
@@ -116,7 +122,7 @@ partial class DriverTests
         Assert.NotNull(driver);
         driver.Dispose();
         await Assert.ThrowsAsync<ObjectDisposedException>(
-            async () => await driver.GetEntryAsync(123, default));
+            async () => await driver.GetEntryAsync(123, TestContext.Current.CancellationToken));
         mockSegmentReader.Verify(r => r.Dispose(), Times.Once);
 
         // Prepare for async dispose.
@@ -125,7 +131,7 @@ partial class DriverTests
         Assert.NotNull(driver);
         await driver.DisposeAsync();
         await Assert.ThrowsAsync<ObjectDisposedException>(
-            async () => await driver.GetEntryAsync(123, default));
+            async () => await driver.GetEntryAsync(123, TestContext.Current.CancellationToken));
         mockSegmentReader.Verify(r => r.DisposeAsync(), Times.Once);
     }
 
@@ -141,7 +147,7 @@ partial class DriverTests
         InitEmptyReadOnlyDriver(firstAndLastKey: 100);
 
         Assert.NotNull(driver);
-        Assert.Null(await driver.GetEntryAsync(key, default));
+        Assert.Null(await driver.GetEntryAsync(key, TestContext.Current.CancellationToken));
     }
 
     [Theory]
@@ -157,7 +163,7 @@ partial class DriverTests
             isDeleted ? EntryFlags.Deleted : EntryFlags.None);
 
         mockSegmentReader
-            .Setup(r => r.OpenDataForReadAsync((long)key, null, default))
+            .Setup(r => r.OpenDataForReadAsync((long)key, null, TestContext.Current.CancellationToken))
             .Returns(new ValueTask<Stream>(dataStream));
 
         InitEmptyReadOnlyDriver(firstAndLastKey: key);
@@ -178,7 +184,7 @@ partial class DriverTests
         }
 
         Assert.NotNull(driver);
-        StoreEntry<int, int>? entry = await driver.GetEntryAsync(key, default);
+        StoreEntry<int, int>? entry = await driver.GetEntryAsync(key, TestContext.Current.CancellationToken);
         Assert.NotNull(entry);
         Assert.Equal(key, entry.Value.Key);
         if (isDeleted)
@@ -204,7 +210,8 @@ partial class DriverTests
     public async Task GetEntryAsyncReturnsNullEntryForKeyNotFound(int key)
     {
         using Stream dataStream = CreateDataStream(EntryFlags.None, EntryFlags.None);
-        mockSegmentReader.Setup(r => r.OpenDataForReadAsync(0, 4, default))
+        mockSegmentReader
+            .Setup(r => r.OpenDataForReadAsync(0, 4, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<Stream>(dataStream));
 
         InitReadOnlyDriver(Enumerable.Range(0, 2)
@@ -222,7 +229,7 @@ partial class DriverTests
             .Returns(new ValueTask());
 
         Assert.NotNull(driver);
-        StoreEntry<int, int>? entry = await driver.GetEntryAsync(key, default);
+        StoreEntry<int, int>? entry = await driver.GetEntryAsync(key, TestContext.Current.CancellationToken);
         Assert.Null(entry);
 
         mockSegmentReader.Verify(
@@ -244,7 +251,8 @@ partial class DriverTests
     public async Task GetEntryAsyncReturnsNullEntryForReadingBeyondWindow(int key)
     {
         using Stream dataStream = CreateDataStream(EntryFlags.None);
-        mockSegmentReader.Setup(r => r.OpenDataForReadAsync(0, 4, default))
+        mockSegmentReader
+            .Setup(r => r.OpenDataForReadAsync(0, 4, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<Stream>(dataStream));
 
         InitReadOnlyDriver(Enumerable.Range(0, 2).Select(i => (i + 1) * 100).ToArray());
@@ -260,7 +268,8 @@ partial class DriverTests
             .Returns(new ValueTask());
 
         Assert.NotNull(driver);
-        StoreEntry<int, int>? entry = await driver.GetEntryAsync(key, default);
+        StoreEntry<int, int>? entry = await driver.GetEntryAsync(
+            key, TestContext.Current.CancellationToken);
         Assert.Null(entry);
 
         mockSegmentReader.Verify(
@@ -292,7 +301,8 @@ partial class DriverTests
             EntryFlags.Deleted, isDeleted ? EntryFlags.Deleted : EntryFlags.None);
         // Whether we scan the first half (0) or the second half (1).
         int half = (key - 100) / 50;
-        mockSegmentReader.Setup(r => r.OpenDataForReadAsync(half * 4, 4, default))
+        mockSegmentReader
+            .Setup(r => r.OpenDataForReadAsync(half * 4, 4, It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<Stream>(dataStream));
 
         InitReadOnlyDriver(Enumerable.Range(0, 3).Select(i => 100 + (i * 50)).ToArray());
@@ -309,7 +319,7 @@ partial class DriverTests
             .Returns(new ValueTask<int>(123456));
 
         Assert.NotNull(driver);
-        StoreEntry<int, int>? entry = await driver.GetEntryAsync(key, default);
+        StoreEntry<int, int>? entry = await driver.GetEntryAsync(key, TestContext.Current.CancellationToken);
         Assert.NotNull(entry);
         Assert.Equal(key, entry.Value.Key);
         if (isDeleted)
