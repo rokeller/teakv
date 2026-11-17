@@ -6,9 +6,8 @@ on:
 
 env:
   DOTNET_VERSIONS: |
-    8.0.x
-    9.0.x
     10.0.x
+    11.0.x
 
 jobs:
   build-test:
@@ -43,9 +42,10 @@ jobs:
 
       - name: Test
         run: |
-          dotnet test TeaSuite.KV.slnx --no-build   \
-            --collect:'XPlat Code Coverage'        \
-            --results-directory 'TestResults/Temp'
+          dotnet test TeaSuite.KV.slnx \
+            --no-build \
+            --coverlet \
+            --results-directory TestResults/Temp
 
       - name: Install report generator
         run: |
@@ -53,8 +53,10 @@ jobs:
 
       - name: Generate report
         run: |
-          reportgenerator -reports:"TestResults/Temp/*/coverage.cobertura.xml" \
-            -targetdir:coverage '-reporttypes:Html_Dark;MarkdownSummaryGithub'
+          reportgenerator \
+            -reports:'TestResults/Temp/coverage.cobertura*.xml' \
+            -targetdir:coverage \
+            -reporttypes:'Html_Dark;MarkdownSummaryGithub'
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v3
