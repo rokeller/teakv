@@ -3,10 +3,10 @@
     <PropertyGroup>
         <Nullable>enable</Nullable>
         <NetStandardTarget>netstandard2.0</NetStandardTarget>
-        <LibraryTargetFrameworks>net8.0;net10.0;$(NetStandardTarget)</LibraryTargetFrameworks>
+        <LibraryTargetFrameworks>net10.0;net11.0;$(NetStandardTarget)</LibraryTargetFrameworks>
         <!-- Use the following target framework to test the netstandard targeted version of the library -->
-        <NetStandardTestTargetFramework>net9.0</NetStandardTestTargetFramework>
-        <TestTargetFrameworks>net8.0;net10.0;$(NetStandardTestTargetFramework)</TestTargetFrameworks>
+        <NetStandardTestTargetFramework>net11.0</NetStandardTestTargetFramework>
+        <TestTargetFrameworks>net10.0;net11.0;$(NetStandardTestTargetFramework)</TestTargetFrameworks>
         <ExampleAppTargetFramework>net10.0</ExampleAppTargetFramework>
         <ExampleAppSystemDependencyVersionWildcard>10.0.*</ExampleAppSystemDependencyVersionWildcard>
     </PropertyGroup>
@@ -19,10 +19,16 @@
     </PropertyGroup>
 
     <PropertyGroup Label="SystemDependencyVersions">
-        <!-- Use 8.0.x assemblies as the minimum for dependencies of netstandard targets -->
-        <SystemDependencyVersionWildcard>8.0.*</SystemDependencyVersionWildcard>
-        <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net8.0'">8.0.*</SystemDependencyVersionWildcard>
+        <!-- Use 10.0.x assemblies as the minimum for dependencies of netstandard targets -->
+        <SystemDependencyVersionWildcard>10.0.*</SystemDependencyVersionWildcard>
         <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net10.0'">10.0.*</SystemDependencyVersionWildcard>
+        <SystemDependencyVersionWildcard Condition="'$(TargetFramework)' == 'net11.0'">11.0.*</SystemDependencyVersionWildcard>
+    </PropertyGroup>
+
+    <PropertyGroup Label="TestDependencyVersions">
+        <MoqVersionWildcard>4.*</MoqVersionWildcard>
+        <XunitVersionWildcard>4.*</XunitVersionWildcard>
+        <CoverletVersionWildcard>10.*</CoverletVersionWildcard>
     </PropertyGroup>
 
     <PropertyGroup>
