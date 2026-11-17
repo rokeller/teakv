@@ -65,6 +65,9 @@ jobs:
   publish:
     needs: build-test
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # enable GitHub OIDC token issuance for this to use for Nuget publishing
+
     steps:
       - uses: actions/checkout@v7
 
@@ -84,8 +87,14 @@ jobs:
         run: |
           dotnet pack TeaSuite.KV.slnx --configuration Release --output packages/
 
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }} # Nuget Org/Owner
+
       - name: Publish NuGet Package
         run: |
-          dotnet nuget push packages/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
+          dotnet nuget push packages/*.nupkg \
+            -s https://api.nuget.org/v3/index.json \
+            --api-key ${{steps.login.outputs.NUGET_API_KEY}}
