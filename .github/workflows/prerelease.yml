@@ -41,6 +41,7 @@ jobs:
       - name: Test
         run: |
           dotnet test TeaSuite.KV.slnx \
+            --configuration Release \
             --no-build \
             --coverlet \
             --results-directory TestResults/Temp
